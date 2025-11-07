@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import './styles/App.css';
 import { getStudents, analyzeGitHubUser, getTeamSuggestions, addUserByEnrollment, makeTeam } from './services/api';
@@ -9,6 +8,7 @@ import AddUserModal from './components/AddUserModal';
 import LanguageSelection from './components/LanguageSelection';
 import MakeTeamButton from './components/MakeTeamButton';
 import NetworkGraph from './components/NetworkGraph';
+import GitHubOverview from './components/GitHubOverview';
 
 interface TechStack {
   name: string;
@@ -24,6 +24,13 @@ interface GithubStats {
   languages: { [key: string]: number };
 }
 
+interface GitHubOverview {
+  summary: string;
+  strengths: string[];
+  recommendations: string[];
+  tech_insights: string[];
+}
+
 interface User {
   id: string;
   name: string;
@@ -37,6 +44,7 @@ interface User {
   last_updated: string;
   enrollment_number?: string;
   compatibility_score?: number;
+  overview?: GitHubOverview; // Add overview field
 }
 
 interface TeamSuggestion {
@@ -56,6 +64,7 @@ const App: React.FC = () => {
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('');
   const [showGraph, setShowGraph] = useState(true);
+  const [showOverview, setShowOverview] = useState(false); // Add overview state
 
   // Load all students when app starts
   useEffect(() => {
@@ -76,6 +85,7 @@ const App: React.FC = () => {
     if (!username) return;
     setLoading(true);
     setError(null);
+    setShowOverview(false); // Reset overview when analyzing new user
     try {
       const newUser = await analyzeGitHubUser(username);
       setStudents((prev) => {
@@ -83,6 +93,7 @@ const App: React.FC = () => {
         return exists ? prev : [...prev, newUser];
       });
       setSelectedUser(newUser);
+      setShowOverview(true); // Show overview after successful analysis
     } catch (err: any) {
       setError(err.message || 'Failed to analyze GitHub user.');
     } finally {
@@ -94,6 +105,7 @@ const App: React.FC = () => {
   const handleAddUser = async (enrollmentNumber: string, githubUsername: string) => {
     setLoading(true);
     setError(null);
+    setShowOverview(false);
     try {
       const newUser = await addUserByEnrollment(enrollmentNumber, githubUsername);
       setStudents((prev) => {
@@ -102,6 +114,7 @@ const App: React.FC = () => {
       });
       setSelectedUser(newUser);
       setShowAddUserModal(false);
+      setShowOverview(true);
     } catch (err: any) {
       setError(err.message || 'Failed to add user.');
     } finally {
@@ -114,6 +127,7 @@ const App: React.FC = () => {
     if (!selectedUser) return;
     setLoading(true);
     setError(null);
+    setShowOverview(false); // Hide overview when building teams
     try {
       const team = await getTeamSuggestions(selectedUser.id, language);
       setSuggestions(team);
@@ -131,6 +145,7 @@ const App: React.FC = () => {
     if (!selectedUser) return;
     setLoading(true);
     setError(null);
+    setShowOverview(false); // Hide overview when building teams
     try {
       const team = await makeTeam(selectedUser.id, students);
       setAutoTeam(team);
@@ -147,10 +162,12 @@ const App: React.FC = () => {
     setSuggestions(null);
     setAutoTeam(null);
     setSelectedLanguage('');
+    setShowOverview(false);
   };
 
   const handleUserSelect = (user: User) => {
     setSelectedUser(user);
+    setShowOverview(false); // Hide overview when selecting different user
   };
 
   // Filter students based on search term
@@ -288,6 +305,14 @@ const App: React.FC = () => {
           <h3>👤 Selected Profile</h3>
           <UserCard user={selectedUser} isSelected={true} />
         </div>
+      )}
+
+      {/* GitHub AI Overview */}
+      {selectedUser && showOverview && selectedUser.overview && !currentTeam && (
+        <GitHubOverview 
+          overview={selectedUser.overview}
+          username={selectedUser.github_username}
+        />
       )}
 
       {/* Add User Modal */}
