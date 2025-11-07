@@ -59,10 +59,11 @@ It uses *real project data* instead of self-declared skills — so the network i
 ### ⚙️ **Backend**
 - FastAPI (Python REST API)  
 - Sentence Transformers (for skill embeddings)  
-- GPT-4o (for teammate suggestions & summaries)  
+- GPT-4o (for teammate suggestions & summaries)
+- Ollama (AI suggestions)
 
 ### ☁️ **Database & Auth**
-- Firebase (Firestore + Authentication)  
+- SQLite  
 - GitHub REST API (for project data)
 
 ---
