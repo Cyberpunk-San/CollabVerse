@@ -1,7 +1,7 @@
 <div align="center">
 
-# 🧬 CollabVerse  
-### *Find your perfect campus match — for projects, not dates 😉*
+#  CollabVerse  
+### *Find your perfect campus match — for projects, not dates *
 
 ![Built with React](https://img.shields.io/badge/Built%20with-React-blue?style=for-the-badge&logo=react)
 ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green?style=for-the-badge&logo=fastapi)
@@ -25,12 +25,12 @@ It maps out the skills of students from their **GitHub activity** and visualizes
 
 ## 🚀 Features
 
-- 🔍 **AI-Based Skill Detection** – Analyzes GitHub repos and READMEs to identify a student’s tech stack.
-- 🌐 **Interactive Skill Graph** – D3.js visualization that connects students by shared or complementary skills.
-- ⚡ **Skill Search** – Type “React”, “AI”, or “Robotics” to instantly highlight matching profiles.
-- 🤖 **AI Team Recommendations** – Suggests ideal teammates using skill embeddings and GPT analysis.
-- 👤 **Smart Profiles** – View student cards with skills, GitHub links, and collaboration interests.
-- 🔄 **Real-Time Updates** – Automatically refreshes data as students update their projects.
+-  **AI-Based Skill Detection** – Analyzes GitHub repos and READMEs to identify a student’s tech stack.
+-  **Interactive Skill Graph** – D3.js visualization that connects students by shared or complementary skills.
+-  **Skill Search** – Type “React”, “AI”, or “Robotics” to instantly highlight matching profiles.
+-  **AI Team Recommendations** – Suggests ideal teammates using skill embeddings and GPT analysis.
+-  **Smart Profiles** – View student cards with skills, GitHub links, and collaboration interests.
+-  **Real-Time Updates** – Automatically refreshes data as students update their projects.
 
 ---
 
