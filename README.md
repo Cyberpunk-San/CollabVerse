@@ -1,7 +1,7 @@
 <div align="center">
 
 #  CollabVerse  
-### *Find your perfect campus match — for projects, not dates *
+### *Find your perfect campus buddies — and ace your hackathons *
 
 ![Built with React](https://img.shields.io/badge/Built%20with-React-blue?style=for-the-badge&logo=react)
 ![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green?style=for-the-badge&logo=fastapi)
