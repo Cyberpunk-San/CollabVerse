@@ -8,7 +8,6 @@
 ![TypeScript](https://img.shields.io/badge/Language-TypeScript-blue?style=for-the-badge&logo=typescript)
 ![Python](https://img.shields.io/badge/AI-Python-yellow?style=for-the-badge&logo=python)
 ![License: MIT](https://img.shields.io/badge/License-MIT-orange?style=for-the-badge)
-![Firebase](https://img.shields.io/badge/Database-Firebase-red?style=for-the-badge&logo=firebase)
 
 </div>
 
