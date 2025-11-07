@@ -26,7 +26,7 @@ It maps out the skills of students from their **GitHub activity** and visualizes
 ## 🎥 Demo Video
 
 [![Watch the Demo](https://img.shields.io/badge/▶️%20Watch%20Demo%20Video-blue?style=for-the-badge)](https://drive.google.com/file/d/18gxkyPr-iMQ6Vg84y1ZxYVdryDuaK_91/view?usp=sharing)
-> click the link
+> click the link(if ask to download, kindly download it , the video is of large mb)
 
 
 ## 🚀 Features
