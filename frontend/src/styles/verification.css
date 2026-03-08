@@ -1,0 +1,167 @@
+.github-verification {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.code-section {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.code-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+.code-display code {
+  font-size: 2rem;
+  font-family: monospace;
+  background: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+}
+
+.copy-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.copy-button:hover {
+  background: #f0f0f0;
+}
+
+.timer {
+  font-size: 1rem;
+  color: #666;
+}
+
+.timer.urgent {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.steps-section {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  border: 1px solid #e0e0e0;
+}
+
+.steps-section ol {
+  margin: 1rem 0;
+  padding-left: 1.5rem;
+}
+
+.steps-section li {
+  margin: 0.5rem 0;
+  line-height: 1.5;
+}
+
+.steps-section code {
+  background: #f5f5f5;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-family: monospace;
+}
+
+.steps-section pre {
+  background: #f5f5f5;
+  padding: 0.5rem;
+  border-radius: 4px;
+  margin: 0.5rem 0;
+  font-size: 1.1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.primary-button, .secondary-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+}
+
+.primary-button {
+  background: #007bff;
+  color: white;
+}
+
+.primary-button:hover {
+  background: #0056b3;
+}
+
+.secondary-button {
+  background: #fff;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.secondary-button:hover {
+  background: #f5f5f5;
+}
+
+.primary-button:disabled, .secondary-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.help-text {
+  text-align: center;
+  color: #666;
+  font-size: 0.9rem;
+  margin-top: 1rem;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  margin: 1rem 0;
+}
+
+.verified-section, .expired-section {
+  text-align: center;
+  padding: 2rem;
+}
+
+.verified-icon {
+  color: #28a745;
+  margin-bottom: 1rem;
+}
+
+.expired-icon {
+  color: #dc3545;
+  margin-bottom: 1rem;
+}
+
+.hint {
+  display: block;
+  color: #666;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}

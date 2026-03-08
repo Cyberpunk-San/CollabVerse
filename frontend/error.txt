@@ -1,0 +1,20 @@
+﻿src/hooks/useChat.ts(5,15): error TS2459: Module '"./useWebSocket"' declares 'AnyWebSocketMessage' locally, but it is not exported.
+src/hooks/useChat.ts(261,11): error TS2322: Type 'string | null | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/hooks/useChat.ts(262,11): error TS2322: Type 'string | null | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/hooks/useChat.ts(263,11): error TS2322: Type 'number | null | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/hooks/useChat.ts(264,11): error TS2322: Type 'string | null | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/hooks/useChat.ts(265,11): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/hooks/useChat.ts(266,11): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | undefined'.
+  Type 'null' is not assignable to type 'string | undefined'.
+src/hooks/useChat.ts(412,23): error TS2345: Argument of type '{ type: "message_edited"; message_id: string; new_content: string; }' is not assignable to parameter of type 'AnyWebSocketMessage'.
+  Property 'edited_at' is missing in type '{ type: "message_edited"; message_id: string; new_content: string; }' but required in type 'ChatMessageEditedWS'.
+src/hooks/useGroup.ts(5,15): error TS2459: Module '"./useWebSocket"' declares 'AnyWebSocketMessage' locally, but it is not exported.
+src/hooks/useGroup.ts(379,9): error TS2353: Object literal may only specify known properties, and 'group_id' does not exist in type 'ChatTypingWS | ChatTypingNotificationWS'.
+src/hooks/useWebSocket.ts(27,29): error TS2554: Expected 1 arguments, but got 0.
+src/hooks/useWebSocket.ts(28,32): error TS2554: Expected 1 arguments, but got 0.
+src/pages/Groups.tsx(106,11): error TS2353: Object literal may only specify known properties, and 'message' does not exist in type 'GroupMessageWS | GroupNewMessageWS'.
