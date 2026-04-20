@@ -105,7 +105,6 @@ group_manager = GroupConnectionManager()
 
 from app.api.auth import get_current_user
 
-# ==================== GROUP MANAGEMENT ====================
 
 @router.post("/create", response_model=GroupResponse)
 async def create_group(
@@ -254,7 +253,6 @@ def update_group(
     
     return enrich_group_response(db, group, student_id)
 
-# ==================== GROUP MEMBERS ====================
 
 @router.post("/{group_id}/members/add")
 def add_members_to_group(
@@ -434,7 +432,6 @@ def leave_group(
     
     return {"success": True, "message": "Left group"}
 
-# ==================== GROUP MESSAGES ====================
 
 @router.post("/{group_id}/messages", response_model=GroupMessageResponse)
 def send_group_message(
@@ -696,7 +693,6 @@ def batch_react_to_messages(
         
     return {"success": True, "message": f"Added reaction to {count} messages", "count": count}
 
-# ==================== MESSAGE EDITING ====================
 
 @router.patch("/{group_id}/messages/{message_id}")
 def edit_group_message(
@@ -754,7 +750,6 @@ def get_message_edit_history(
         "history": history
     }
 
-# ==================== REACTIONS ====================
 
 @router.post("/{group_id}/messages/{message_id}/react")
 def react_to_message(
@@ -843,7 +838,6 @@ def get_message_reactions(
         "reactions": result
     }
 
-# ==================== MENTIONS ====================
 
 @router.get("/mentions", response_model=List[Dict])
 def get_my_mentions(
@@ -967,7 +961,6 @@ def get_mention_statistics(
     stats = GroupService.get_mention_statistics(db, student_id)
     return stats
 
-# ==================== PINNED MESSAGES ====================
 
 @router.post("/{group_id}/messages/{message_id}/pin")
 def pin_message(
@@ -1053,7 +1046,6 @@ def get_pinned_messages(
     pins = GroupService.get_pinned_messages(db, group_id)
     return pins
 
-# ==================== POLLS ====================
 
 @router.post("/{group_id}/polls")
 def create_poll(
@@ -1175,7 +1167,6 @@ def get_poll_results(
     
     return results
 
-# ==================== GROUP INVITES ====================
 
 @router.post("/{group_id}/invites", response_model=GroupInviteResponse)
 def create_group_invite(
@@ -1273,7 +1264,6 @@ def revoke_invite(
     
     return {"success": True, "message": "Invite revoked"}
 
-# ==================== GROUP SETTINGS ====================
 
 @router.get("/{group_id}/settings")
 def get_group_settings(
@@ -1347,7 +1337,6 @@ def update_group_settings(
         "settings": group.settings
     }
 
-# ==================== MEMBER SETTINGS ====================
 
 @router.get("/{group_id}/member-settings")
 def get_member_settings(
@@ -1446,7 +1435,6 @@ def unmute_group(
     
     return {"success": True, "message": "Group unmuted"}
 
-# ==================== STATISTICS & UTILS ====================
 
 @router.get("/{group_id}/stats")
 def get_group_stats(
@@ -1553,7 +1541,6 @@ def get_online_members(
         "online_members": online_members
     }
 
-# ==================== WEBSOCKET ====================
 
 @router.websocket("/ws/{user_id}")
 async def group_websocket(websocket: WebSocket, user_id: str):
@@ -1642,7 +1629,6 @@ async def group_websocket(websocket: WebSocket, user_id: str):
     except Exception as e:
         group_manager.disconnect(user_id)
 
-# ==================== HELPER FUNCTIONS ====================
 
 def enrich_group_response(db: Session, group: Group, user_id: str) -> dict:
     member_count = db.query(GroupMember).filter(

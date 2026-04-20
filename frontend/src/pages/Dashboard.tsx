@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../contexts/AuthContext';
 import { useChat } from '../hooks/useChat';
 import { useGroup } from '../hooks/useGroup';
 import { Card, Avatar, Button, Skeleton, EmptyState } from '../components/common';
@@ -27,7 +27,7 @@ interface DashboardStats {
 }
 
 export const Dashboard: React.FC = () => {
-    const { user } = useAuth();
+    const { user } = useAuthContext();
     const { conversations, isLoading: chatLoading } = useChat();
     const { groups, unreadMentionCount, isLoading: groupLoading } = useGroup();
     const navigate = useNavigate();
@@ -61,17 +61,15 @@ export const Dashboard: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        // Calculate stats
         setStats({
             totalMessages: conversations.reduce((acc, c) => acc + (c.unread_count || 0), 0),
             totalGroups: groups.length,
             pendingRequests: unreadMentionCount,
             onlineFriends: conversations.filter(c => c.is_online).length,
             unreadMentions: unreadMentionCount,
-            upcomingEvents: 3 // Placeholder for now
+            upcomingEvents: 3 
         });
 
-        // Set greeting based on time
         const hour = new Date().getHours();
         if (hour < 12) setGreeting('Good morning');
         else if (hour < 18) setGreeting('Good afternoon');
@@ -119,16 +117,11 @@ export const Dashboard: React.FC = () => {
 
     if (chatLoading || groupLoading || loadingStats) {
         return (
-            <div className="p-6 space-y-6">
-                <Skeleton className="h-32 w-full rounded-2xl" />
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="p-8 space-y-8">
+                <Skeleton className="h-44 w-full rounded-[2.5rem]" />
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                     {[1, 2, 3, 4].map(i => (
-                        <Skeleton key={i} className="h-24 rounded-xl" />
-                    ))}
-                </div>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {[1, 2].map(i => (
-                        <Skeleton key={i} className="h-64 rounded-xl" />
+                        <Skeleton key={i} className="h-32 rounded-3xl" />
                     ))}
                 </div>
             </div>
@@ -136,269 +129,151 @@ export const Dashboard: React.FC = () => {
     }
 
     return (
-        <div className="p-6 space-y-6 animate-fade-in">
-            {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-black opacity-10" />
-                <div className="relative z-10">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center backdrop-blur-sm">
-                            <Activity className="w-6 h-6" />
+        <div className="p-8 space-y-10 max-w-7xl mx-auto animate-entrance">
+            {/* Welcome Section - Bento Hero */}
+            <div className="relative overflow-hidden rounded-[2.5rem] bg-slate-900 dark:bg-slate-950 p-10 text-white shadow-2xl">
+                <div className="absolute top-0 right-0 w-1/2 h-full bg-gradient-to-l from-indigo-500/20 to-transparent pointer-events-none" />
+                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                    <div>
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse" />
+                            <p className="text-xs font-bold tracking-[0.2em] uppercase text-indigo-400">{greeting}</p>
                         </div>
-                        <div>
-                            <p className="text-indigo-100">{greeting},</p>
-                            <h1 className="text-3xl font-bold">{user?.githubUsername}</h1>
-                        </div>
+                        <h1 className="text-5xl font-black tracking-tighter mb-4">
+                            Hello, <span className="gradient-text">{user?.githubUsername}</span>
+                        </h1>
+                        <p className="text-slate-400 max-w-xl text-lg leading-relaxed">
+                            {systemStats ? (
+                                <>Trusted by <span className="text-white font-semibold">{systemStats.users.total}</span> developers. <span className="text-indigo-400">{systemStats.messages.today}</span> messages pulsing through the network today.</>
+                            ) : (
+                                `Everything is looking good. You have ${stats.unreadMentions} mentions and ${stats.pendingRequests} requests to handle.`
+                            )}
+                        </p>
                     </div>
-                    <p className="text-indigo-100 max-w-2xl">
-                        {systemStats ? (
-                            `Shared by ${systemStats.users.total} developers across ${systemStats.groups.total} active groups. ${systemStats.messages.today} messages exchanged today.`
-                        ) : (
-                            `Here's what's happening with your projects today. You have ${stats.unreadMentions} unread mentions and ${stats.pendingRequests} pending requests.`
-                        )}
-                    </p>
+                    <div className="p-4 glass rounded-3xl border-white/5 hidden lg:block">
+                         <Activity className="w-8 h-8 text-indigo-400 animate-pulse" />
+                    </div>
                 </div>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <Card
-                    className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => navigate('/chat')}
-                >
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-500">Unread Messages</p>
-                            <p className="text-3xl font-bold text-gray-900">{stats.totalMessages}</p>
-                            <p className="text-xs text-gray-400 mt-1">
-                                {stats.onlineFriends} friends online
-                            </p>
-                        </div>
-                        <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                            <MessageSquare className="w-6 h-6 text-blue-600" />
-                        </div>
-                    </div>
-                </Card>
-
-                <Card
-                    className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => navigate('/groups')}
-                >
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-500">Active Groups</p>
-                            <p className="text-3xl font-bold text-gray-900">{stats.totalGroups}</p>
-                            <p className="text-xs text-gray-400 mt-1">
-                                {stats.unreadMentions} mentions
-                            </p>
-                        </div>
-                        <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                            <Users className="w-6 h-6 text-green-600" />
+            {/* Stats Cards - Sophisticated & Clean */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                    { label: 'Unread Messages', value: stats.totalMessages, sub: `${stats.onlineFriends} online`, icon: MessageSquare, col: 'text-blue-500', bg: 'bg-blue-500/10', path: '/chat' },
+                    { label: 'Active Groups', value: stats.totalGroups, sub: `${stats.unreadMentions} mentions`, icon: Users, col: 'text-green-500', bg: 'bg-green-500/10', path: '/groups' },
+                    { label: 'Pending Requests', value: stats.pendingRequests, sub: 'Awaiting you', icon: GitPullRequest, col: 'text-yellow-500', bg: 'bg-yellow-500/10', path: '/requests' },
+                    { label: 'Upcoming', value: stats.upcomingEvents, sub: 'Next 7 days', icon: Calendar, col: 'text-purple-500', bg: 'bg-purple-500/10', path: '/' }
+                ].map((item, i) => (
+                    <div 
+                        key={i} 
+                        onClick={() => navigate(item.path)}
+                        className="card-modern p-6 group cursor-pointer hover:bg-white dark:hover:bg-slate-900/50"
+                    >
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">{item.label}</p>
+                                <p className="text-4xl font-black dark:text-white tracking-tighter">{item.value}</p>
+                                <p className="text-sm text-slate-400 mt-2 font-medium">{item.sub}</p>
+                            </div>
+                            <div className={`p-3 rounded-2xl ${item.bg} ${item.col}`}>
+                                <item.icon size={24} />
+                            </div>
                         </div>
                     </div>
-                </Card>
-
-                <Card
-                    className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => navigate('/requests')}
-                >
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-500">Pending Requests</p>
-                            <p className="text-3xl font-bold text-gray-900">{stats.pendingRequests}</p>
-                            <p className="text-xs text-gray-400 mt-1">
-                                Awaiting response
-                            </p>
-                        </div>
-                        <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
-                            <GitPullRequest className="w-6 h-6 text-yellow-600" />
-                        </div>
-                    </div>
-                </Card>
-
-                <Card
-                    className="p-6 hover:shadow-lg transition-shadow cursor-pointer"
-                    onClick={() => navigate('/')}
-                >
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-sm text-gray-500">Upcoming</p>
-                            <p className="text-3xl font-bold text-gray-900">{stats.upcomingEvents}</p>
-                            <p className="text-xs text-gray-400 mt-1">
-                                Events this week
-                            </p>
-                        </div>
-                        <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
-                            <Calendar className="w-6 h-6 text-purple-600" />
-                        </div>
-                    </div>
-                </Card>
+                ))}
             </div>
 
-            {/* Quick Actions */}
+            {/* Quick Actions - Floating Pills */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {quickActions.map(action => (
+                {quickActions.map((action, index) => (
                     <button
                         key={action.id}
                         onClick={action.onClick}
-                        className="group relative p-6 bg-white rounded-xl border border-gray-200 hover:border-indigo-300 hover:shadow-lg transition-all duration-200 text-left"
+                        className="group relative flex items-center gap-4 p-4 glass rounded-3xl hover:border-indigo-500/50 transition-all duration-300 overflow-hidden"
                     >
-                        <div className={`w-12 h-12 ${action.color} rounded-xl flex items-center justify-center text-white mb-4 group-hover:scale-110 transition-transform`}>
-                            <action.icon className="w-6 h-6" />
+                        <div className={`p-3 rounded-2xl ${action.color} text-white group-hover:scale-110 transition-transform`}>
+                            <action.icon size={20} />
                         </div>
-                        <h3 className="font-semibold text-gray-900 mb-1">{action.label}</h3>
-                        <p className="text-sm text-gray-500">{action.description}</p>
-                        {action.badge !== undefined && action.badge > 0 && (
-                            <span className="absolute top-4 right-4 px-2 py-1 text-xs bg-red-500 text-white rounded-full">
-                                {action.badge}
-                            </span>
-                        )}
+                        <div className="text-left">
+                            <p className="font-bold text-sm dark:text-white">{action.label}</p>
+                            <p className="text-xs text-slate-500">{action.badge ? `${action.badge} active` : 'Launch'}</p>
+                        </div>
+                        {action.badge ? (
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-indigo-500 rounded-full" />
+                        ) : null}
                     </button>
                 ))}
             </div>
 
-            {/* Recent Activity */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Main Content Split */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Recent Chats */}
-                <Card
-                    title="Recent Chats"
+                <Card 
+                    className="card-modern border-none bg-transparent shadow-none"
                     headerAction={
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate('/chat')}
-                            icon={<ArrowRight className="w-4 h-4" />}
-                            iconPosition="right"
-                        >
-                            View All
+                        <Button variant="ghost" size="sm" className="rounded-full" onClick={() => navigate('/chat')}>
+                            View All <ArrowRight className="ml-2 w-4 h-4" />
                         </Button>
                     }
-                    className="hover:shadow-lg transition-shadow"
                 >
-                    {recentChats.length > 0 ? (
-                        <div className="space-y-3">
-                            {recentChats.map(chat => (
-                                <div
-                                    key={chat.user_id}
-                                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors group"
-                                    onClick={() => navigate(`/chat/${chat.user_id}`)}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="relative">
-                                            <Avatar username={chat.username} size="md" />
-                                            {chat.is_online && (
-                                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="font-medium text-gray-900">{chat.username}</p>
-                                            <p className="text-sm text-gray-500 line-clamp-1">
-                                                {chat.last_message || 'No messages yet'}
-                                            </p>
-                                        </div>
+                    <h2 className="text-2xl font-black mb-6 px-2 dark:text-white">Recent Conversations</h2>
+                    <div className="space-y-2">
+                        {recentChats.map(chat => (
+                            <div 
+                                key={chat.user_id}
+                                onClick={() => navigate(`/chat/${chat.user_id}`)}
+                                className="flex items-center justify-between p-4 rounded-[1.5rem] hover:bg-white dark:hover:bg-slate-900/80 transition-all cursor-pointer group border border-transparent hover:border-slate-100 dark:hover:border-slate-800"
+                            >
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <Avatar username={chat.username} size="lg" className="rounded-2xl" />
+                                        {chat.is_online && <span className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-4 border-white dark:border-slate-900 rounded-full" />}
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xs text-gray-400">
-                                            {chat.last_message_time && new Date(chat.last_message_time).toLocaleTimeString([], {
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </p>
-                                        {chat.unread_count > 0 && (
-                                            <span className="inline-block px-2 py-0.5 text-xs bg-indigo-600 text-white rounded-full mt-1">
-                                                {chat.unread_count}
-                                            </span>
-                                        )}
+                                    <div>
+                                        <p className="font-bold dark:text-white">{chat.username}</p>
+                                        <p className="text-sm text-slate-500 line-clamp-1">{chat.last_message || 'No messages'}</p>
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <EmptyState
-                            type="chat"
-                            title="No recent chats"
-                            description="Start a conversation with your connections"
-                            action={{
-                                label: "Find Connections",
-                                onClick: () => navigate('/requests')
-                            }}
-                        />
-                    )}
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase">
+                                        {chat.last_message_time && new Date(chat.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </p>
+                                    {chat.unread_count > 0 && <div className="mt-2 ml-auto w-2 h-2 bg-indigo-500 rounded-full shadow-[0_0_10px_rgba(99,102,241,0.8)]" />}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 </Card>
 
-                {/* Recent Groups */}
-                <Card
-                    title="Recent Groups"
-                    headerAction={
-                        <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => navigate('/groups')}
-                            icon={<ArrowRight className="w-4 h-4" />}
-                            iconPosition="right"
-                        >
-                            View All
-                        </Button>
-                    }
-                    className="hover:shadow-lg transition-shadow"
-                >
-                    {recentGroups.length > 0 ? (
-                        <div className="space-y-3">
-                            {recentGroups.map(group => (
-                                <div
-                                    key={group.id}
-                                    className="flex items-center justify-between p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors group"
-                                    onClick={() => navigate(`/groups/${group.id}`)}
-                                >
+                {/* Activity Feed / Groups */}
+                <Card title="Your Squads" className="card-modern border-none bg-transparent shadow-none">
+                    <div className="space-y-4">
+                        {recentGroups.length > 0 ? recentGroups.map(group => (
+                            <div 
+                                key={group.id}
+                                onClick={() => navigate(`/groups/${group.id}`)}
+                                className="p-6 glass rounded-[2rem] hover:bg-white dark:hover:bg-slate-900/50 transition-all cursor-pointer group"
+                            >
+                                <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-3">
-                                        <Avatar username={group.name} size="md" />
-                                        <div>
-                                            <p className="font-medium text-gray-900">{group.name}</p>
-                                            <p className="text-sm text-gray-500 flex items-center gap-1">
-                                                <Users className="w-3 h-3" />
-                                                {group.member_count} members
-                                            </p>
-                                        </div>
+                                        <Avatar username={group.name} size="md" className="rounded-xl" />
+                                        <p className="font-bold dark:text-white">{group.name}</p>
                                     </div>
-                                    <div className="text-right">
-                                        <p className="text-xs text-gray-400">
-                                            {group.last_message_time && new Date(group.last_message_time).toLocaleTimeString([], {
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </p>
-                                        {group.unread_count > 0 && (
-                                            <span className="inline-block px-2 py-0.5 text-xs bg-indigo-600 text-white rounded-full mt-1">
-                                                {group.unread_count}
-                                            </span>
-                                        )}
+                                    <div className="flex -space-x-2">
+                                        {[...Array(Math.min(group.member_count, 3))].map((_, i) => (
+                                            <div key={i} className="w-6 h-6 rounded-full bg-slate-800 border-2 border-white dark:border-slate-900" />
+                                        ))}
                                     </div>
                                 </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <EmptyState
-                            type="groups"
-                            title="No groups yet"
-                            description="Create a group to start collaborating"
-                            action={{
-                                label: "Create Group",
-                                onClick: () => navigate('/groups')
-                            }}
-                        />
-                    )}
+                                <div className="flex items-center justify-between text-xs text-slate-500 font-bold uppercase tracking-widest">
+                                    <span className="flex items-center gap-1"><Users size={12}/> {group.member_count} Members</span>
+                                    {group.unread_count > 0 && <span className="text-indigo-500">{group.unread_count} New</span>}
+                                </div>
+                            </div>
+                        )) : <EmptyState type="groups" title="Join a Squad" description="Join groups to start collaborating with your team." />}
+                    </div>
                 </Card>
             </div>
-
-            {/* Activity Chart - Placeholder for now */}
-            <Card title="Weekly Activity">
-                <div className="h-48 flex items-center justify-center bg-gray-50 rounded-lg">
-                    <div className="text-center">
-                        <TrendingUp className="w-12 h-12 text-gray-300 mx-auto mb-2" />
-                        <p className="text-gray-500">Activity chart coming soon</p>
-                    </div>
-                </div>
-            </Card>
         </div>
     );
 };

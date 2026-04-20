@@ -106,7 +106,6 @@ def build_team_for_current_user(
         raise HTTPException(400, "No other students available to form a team")
 
     # Score each candidate by complementarity:
-    # Higher score = they contribute skills the current user lacks
     def complementarity_score(candidate: Student) -> float:
         if not candidate.skills:
             return 0.0

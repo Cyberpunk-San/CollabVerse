@@ -22,6 +22,7 @@ export interface AuthUser {
   id: string;
   email: string;
   githubUsername: string;
+  githubVerified: boolean;
 }
 
 export interface AuthResponse {
@@ -57,7 +58,6 @@ export interface AuthState {
   token: string | null;
 }
 
-// API response wrapper (if your API wraps responses)
 export interface ApiResponse<T> {
   data: T;
   status: string;

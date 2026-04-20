@@ -18,7 +18,7 @@ interface GroupChatProps {
   currentUserId: string;
   currentUserRole?: 'member' | 'admin' | 'creator';
   isLoading?: boolean;
-  onSendMessage: (content: string, mentionType?: string, mentionedUsers?: string[]) => void;
+  onSendMessage: (content: string, mentionType?: string, mentionedUsers?: string[], replyToId?: string) => void;
   onSendFile?: (file: File, caption?: string) => void;
   onTyping?: (isTyping: boolean) => void;
   onLoadMore?: () => void;
@@ -268,7 +268,8 @@ export const GroupChat: React.FC<GroupChatProps> = ({
             });
           }
 
-          onSendMessage(content, mentionType, mentionedUsers);
+          onSendMessage(content, mentionType, mentionedUsers, replyingTo?.id);
+          setReplyingTo(null);
         }}
         onSendFile={onSendFile}
         onTyping={onTyping}

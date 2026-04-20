@@ -1,0 +1,41 @@
+{
+  "students": [
+    {
+      "id": 1,
+      "github": {
+        "commits": 450,
+        "pull_requests": 23,
+        "reviews": 15,
+        "repositories": 8,
+        "stars": 127,
+        "forks": 34
+      },
+      "skills": {
+        "python": 0.85,
+        "javascript": 0.4,
+        "cpp": 0.2,
+        "java": 0.1
+      },
+      "collaboration": {
+        "teams": 3,
+        "projects_completed": 2,
+        "avg_response_time": 4.5,
+        "messages_sent": 234,
+        "help_given": 12,
+        "help_received": 8
+      },
+      "learning": {
+        "courses": 2,
+        "tutorials": 15,
+        "avg_quiz_score": 87,
+        "days_active": 45
+      },
+      "future": {
+        "python_improvement": 0.15,
+        "javascript_improvement": 0.25,
+        "cpp_improvement": 0.1,
+        "teamwork_improvement": 0.2
+      }
+    }
+  ]
+}

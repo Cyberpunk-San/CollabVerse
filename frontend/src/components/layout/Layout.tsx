@@ -15,7 +15,7 @@ const Layout: React.FC = () => {
                     flexGrow: 1,
                     display: 'flex',
                     flexDirection: 'column',
-                    minWidth: 0, // Prevent content from pushing layout
+                    minWidth: 0,
                     height: '100vh',
                     overflow: 'hidden'
                 }}

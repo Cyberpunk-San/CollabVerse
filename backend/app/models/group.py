@@ -4,7 +4,6 @@ from app.core.database import Base
 import uuid
 from datetime import datetime
 
-# ==================== GROUP CORE MODELS ====================
 
 class Group(Base):
     __tablename__ = "groups"
@@ -21,7 +20,7 @@ class Group(Base):
         "allow_editing": True,
         "allow_pinning": True,
         "admin_only_messages": False,
-        "slow_mode": 0,  # seconds between messages (0 = disabled)
+        "slow_mode": 0,
         "mention_notify_all": False
     })
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -93,7 +92,6 @@ class GroupMessage(Base):
     poll = relationship("GroupPoll", back_populates="message", uselist=False, cascade="all, delete-orphan")
 
 
-# ==================== MENTION FEATURES ====================
 
 class MessageMention(Base):
     __tablename__ = "message_mentions"
@@ -137,7 +135,6 @@ class UserMentionSettings(Base):
     __table_args__ = (UniqueConstraint('user_id', 'group_id', name='uq_user_group_settings'),)
 
 
-# ==================== REACTIONS & READ STATUS ====================
 
 class MessageReaction(Base):
     __tablename__ = "message_reactions"
@@ -172,7 +169,6 @@ class GroupMessageRead(Base):
     __table_args__ = (UniqueConstraint('message_id', 'user_id', name='uq_message_user'),)
 
 
-# ==================== ADDITIONAL FEATURES ====================
 
 class PinnedMessage(Base):
     __tablename__ = "pinned_messages"
@@ -228,7 +224,6 @@ class PollVote(Base):
     __table_args__ = (UniqueConstraint('poll_id', 'user_id', name='uq_poll_user'),)
 
 
-# ==================== INVITES ====================
 
 class GroupInvite(Base):
     __tablename__ = "group_invites"

@@ -13,9 +13,7 @@ SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = settings.JWT_ALGORITHM
 ACCESS_TOKEN_EXPIRE_MINUTES = settings.JWT_EXPIRE_MINUTES
 
-# ACCESS_TOKEN_EXPIRE_MINUTES = settings.JWT_EXPIRE_MINUTES
 
-# ==================== SCHEMAS ====================
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -41,7 +39,6 @@ class MessageResponse(BaseModel):
 
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
-# ==================== HELPER FUNCTIONS ====================
 
 def verify_password(plain_password, hashed_password):
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
@@ -67,7 +64,6 @@ async def get_current_user(authorization: str = Header(..., alias="Authorization
     except jwt.PyJWTError:
         raise HTTPException(401, "Invalid token")
 
-# ==================== AUTH ENDPOINTS (4 ONLY) ====================
 
 @router.post("/register", response_model=TokenResponse)
 async def register(request: RegisterRequest, db: Session = Depends(get_db)):
@@ -103,7 +99,8 @@ async def register(request: RegisterRequest, db: Session = Depends(get_db)):
         "user": {
             "id": str(student.id),
             "email": student.email,
-            "githubUsername": student.github_username
+            "githubUsername": student.github_username,
+            "githubVerified": student.github_verified
         }
     }
 
@@ -139,8 +136,24 @@ async def login(request: LoginRequest, db: Session = Depends(get_db)):
         "user": {
             "id": str(student.id),
             "email": student.email,
-            "githubUsername": student.github_username
+            "githubUsername": student.github_username,
+            "githubVerified": student.github_verified
         }
+    }
+
+
+@router.get("/me", response_model=dict)
+async def get_me(user_id: str = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Get current user data for session sync"""
+    student = db.query(Student).filter(Student.id == user_id).first()
+    if not student:
+        raise HTTPException(404, "User not found")
+    
+    return {
+        "id": str(student.id),
+        "email": student.email,
+        "githubUsername": student.github_username,
+        "githubVerified": student.github_verified
     }
 
 

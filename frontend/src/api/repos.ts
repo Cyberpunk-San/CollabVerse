@@ -212,7 +212,6 @@ export const reposApi = {
       const stars_score = repo.stars / (Math.max(...repos.map(r => r.stars)) || 1);
       const forks_score = repo.forks / (Math.max(...repos.map(r => r.forks)) || 1);
 
-      // Recency score (newer = higher)
       const age = now - new Date(repo.updated_at).getTime();
       const recency_score = 1 - (age / max_age);
 

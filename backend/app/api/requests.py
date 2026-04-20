@@ -134,13 +134,11 @@ def check_connection_status(
     db: Session = Depends(get_db)
 ):
     """Check connection status with another student"""
-    # Check if you sent a request
     sent_request = db.query(Request).filter(
         Request.sender_id == student_id,
         Request.receiver_id == other_student_id
     ).first()
     
-    # Check if you received a request
     received_request = db.query(Request).filter(
         Request.sender_id == other_student_id,
         Request.receiver_id == student_id

@@ -9,7 +9,6 @@ import type {
 export * from '../types/group';
 
 export const groupsApi = {
-  // ==================== GROUP MANAGEMENT ====================
 
   /**
    * Create a new group
@@ -91,7 +90,6 @@ export const groupsApi = {
     return response.data;
   },
 
-  // ==================== MEMBER MANAGEMENT ====================
 
   /**
    * Get group members
@@ -176,7 +174,6 @@ export const groupsApi = {
     return response.data;
   },
 
-  // ==================== MESSAGES ====================
 
   /**
    * Send a message to group
@@ -350,7 +347,6 @@ export const groupsApi = {
     return response.data;
   },
 
-  // ==================== REACTIONS ====================
 
   /**
    * React to a message
@@ -390,7 +386,6 @@ export const groupsApi = {
     return response.data;
   },
 
-  // ==================== MENTIONS ====================
 
   /**
    * Get mentions for current user
@@ -508,7 +503,6 @@ export const groupsApi = {
     return response.data;
   },
 
-  // ==================== PINNED MESSAGES ====================
 
   /**
    * Pin a message
@@ -556,7 +550,6 @@ export const groupsApi = {
     return response.data;
   },
 
-  // ==================== POLLS ====================
 
   /**
    * Create a poll
@@ -625,7 +618,6 @@ export const groupsApi = {
     return response.data;
   },
 
-  // ==================== INVITES ====================
 
   /**
    * Create group invite
@@ -686,7 +678,6 @@ export const groupsApi = {
     return response.data;
   },
 
-  // ==================== SETTINGS ====================
 
   /**
    * Get group settings (admin only)
@@ -790,7 +781,6 @@ export const groupsApi = {
     return response.data;
   },
 
-  // ==================== STATISTICS & UTILS ====================
 
   /**
    * Get group statistics

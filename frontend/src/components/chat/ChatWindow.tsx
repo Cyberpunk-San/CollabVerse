@@ -11,13 +11,15 @@ interface ChatWindowProps {
   isOnline?: boolean;
   isTyping?: boolean;
   isLoading?: boolean;
-  onSendMessage: (content: string) => void;
+  onSendMessage: (content: string, replyToId?: string) => void;
   onSendFile?: (file: File, caption?: string) => void;
   onTyping?: (isTyping: boolean) => void;
   onMarkAsRead?: () => void;
   onLoadMore?: () => void;
   onEditMessage?: (messageId: string, newContent: string) => void;
   onDeleteMessage?: (messageId: string) => void;
+  onPinMessage?: (messageId: string) => void;
+  onReactToMessage?: (messageId: string, emoji: string) => void;
   hasMore?: boolean;
 }
 
@@ -35,11 +37,14 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   onLoadMore,
   onEditMessage,
   onDeleteMessage,
+  onPinMessage,
+  onReactToMessage,
   hasMore = false
 }) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<ChatMessageResponse | null>(null);
 
   useEffect(() => {
     if (!showScrollButton) {
@@ -98,8 +103,8 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
   const messageGroups = groupMessagesByDate();
 
   return (
-    <div className="chat-window flex flex-col h-full bg-gray-50">
-      <div className="chat-header px-6 py-4 bg-white border-b border-gray-200">
+    <div className="chat-window flex flex-col h-full bg-transparent">
+      <div className="chat-header px-6 py-4 bg-transparent border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="relative">
@@ -111,7 +116,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
               )}
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                 {partnerUsername}
               </h2>
               <p className="text-sm text-gray-500">
@@ -136,7 +141,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             </button>
 
             <div className="relative">
-              <button className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition-colors">
+              <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
                 <MoreVertical className="w-5 h-5" />
               </button>
             </div>
@@ -163,7 +168,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                 <button
                   onClick={onLoadMore}
                   disabled={isLoading}
-                  className="px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                  className="px-4 py-2 text-sm text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-colors"
                 >
                   {isLoading ? 'Loading...' : 'Load More'}
                 </button>
@@ -173,7 +178,7 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
             {messageGroups.map((group, groupIndex) => (
               <div key={groupIndex} className="mb-6">
                 <div className="flex items-center justify-center mb-4">
-                  <span className="px-3 py-1 text-xs font-medium text-gray-500 bg-gray-100 rounded-full">
+                  <span className="px-3 py-1 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 rounded-full">
                     {group.date}
                   </span>
                 </div>
@@ -191,6 +196,9 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
                       partnerUsername={partnerUsername}
                       onEdit={(id, content) => onEditMessage?.(id, content)}
                       onDelete={(id) => onDeleteMessage?.(id)}
+                      onReply={(msg) => setReplyingTo(msg)}
+                      onPin={(id) => onPinMessage?.(id)}
+                      onReact={(id, emoji) => onReactToMessage?.(id, emoji)}
                     />
                   );
                 })}
@@ -227,11 +235,16 @@ export const ChatWindow: React.FC<ChatWindowProps> = ({
       )}
 
       <ChatInput
-        onSendMessage={onSendMessage}
+        onSendMessage={(content) => {
+          onSendMessage(content, replyingTo?.id);
+          setReplyingTo(null);
+        }}
         onSendFile={onSendFile}
         onTyping={onTyping}
         disabled={isLoading}
         placeholder={`Message ${partnerUsername}...`}
+        replyingTo={replyingTo}
+        onCancelReply={() => setReplyingTo(null)}
       />
     </div>
   );

@@ -27,6 +27,7 @@ type WSNewMessage = WebSocketMessage & {
   thumbnail_url?: string;
   time?: string;
   from_username?: string;
+  reply_to_id?: string;
 };
 
 type WSTyping = WebSocketMessage & {
@@ -50,6 +51,22 @@ type WSMessageEdited = WebSocketMessage & {
 type WSMessagesRead = WebSocketMessage & {
   type: 'messages_read';
   read_by: string;
+};
+
+type WSMessageReacted = WebSocketMessage & {
+  type: 'message_reacted';
+  message_id: string;
+  reactions: Record<string, string[]>;
+};
+
+type WSMessagePinned = WebSocketMessage & {
+  type: 'message_pinned';
+  message_id: string;
+};
+
+type WSMessageUnpinned = WebSocketMessage & {
+  type: 'message_unpinned';
+  message_id: string;
 };
 
 // Define FailedOperation type for the new state
@@ -205,6 +222,45 @@ export const useChat = () => {
         }
         break;
       }
+      case 'message_reacted': {
+        const payload = data as WSMessageReacted;
+        setMessages(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(partnerId => {
+            updated[partnerId] = updated[partnerId].map(msg =>
+              msg.id === payload.message_id ? { ...msg, reactions: payload.reactions } : msg
+            );
+          });
+          return updated;
+        });
+        break;
+      }
+      case 'message_pinned': {
+        const payload = data as WSMessagePinned;
+        setMessages(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(partnerId => {
+            updated[partnerId] = updated[partnerId].map(msg =>
+              msg.id === payload.message_id ? { ...msg, is_pinned: true } : msg
+            );
+          });
+          return updated;
+        });
+        break;
+      }
+      case 'message_unpinned': {
+        const payload = data as WSMessageUnpinned;
+        setMessages(prev => {
+          const updated = { ...prev };
+          Object.keys(updated).forEach(partnerId => {
+            updated[partnerId] = updated[partnerId].map(msg =>
+              msg.id === payload.message_id ? { ...msg, is_pinned: false } : msg
+            );
+          });
+          return updated;
+        });
+        break;
+      }
     }
   }, [studentId, activeChat]);
 
@@ -293,7 +349,7 @@ export const useChat = () => {
     }
   }, [messages, pagination]);
   // Send message
-  const sendMessage = useCallback(async (receiverId: string, content: string) => {
+  const sendMessage = useCallback(async (receiverId: string, content: string, replyToId?: string) => {
     // Optimistic update: generate temporary ID
     const tempId = `temp-${Date.now()}`;
     const tempMessage: ChatMessage = {
@@ -304,6 +360,7 @@ export const useChat = () => {
       message_type: 'text',
       is_read: false,
       created_at: new Date().toISOString(),
+      reply_to_id: replyToId
       // other optional fields can be omitted or set to undefined
     };
     // Add temp message to UI immediately
@@ -318,12 +375,13 @@ export const useChat = () => {
         sendWsMessage({
           type: 'chat',
           to: receiverId,
-          text: content
+          text: content,
+          reply_to_id: replyToId
         });
       }
 
       // Persist via API
-      const message = await chatApi.sendTextMessage(receiverId, content);
+      const message = await chatApi.sendMessage(receiverId, content, replyToId);
 
       // Replace temp message with real message
       setMessages(prev => ({
@@ -472,7 +530,7 @@ export const useChat = () => {
   // Clear conversation
   const clearConversation = useCallback(async (partnerId: string) => {
     try {
-      await chatApi.clearConversationForMe(partnerId);
+      await chatApi.deleteConversation(partnerId);
       setMessages(prev => {
         const updated = { ...prev };
         delete updated[partnerId];
@@ -515,6 +573,63 @@ export const useChat = () => {
       throw error;
     }
   }, [isConnected, sendWsMessage]);
+
+  // React to message
+  const reactToMessage = useCallback(async (messageId: string, emoji: string) => {
+    try {
+      const data = await chatApi.reactToMessage(messageId, emoji);
+      setMessages(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(partnerId => {
+          updated[partnerId] = updated[partnerId].map(msg =>
+            msg.id === messageId ? { ...msg, reactions: data.reactions } : msg
+          );
+        });
+        return updated;
+      });
+    } catch (error) {
+      console.error('Failed to react to message:', error);
+      throw error;
+    }
+  }, []);
+
+  // Pin message
+  const pinMessage = useCallback(async (messageId: string) => {
+    try {
+      await chatApi.pinMessage(messageId);
+      setMessages(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(partnerId => {
+          updated[partnerId] = updated[partnerId].map(msg =>
+            msg.id === messageId ? { ...msg, is_pinned: true } : msg
+          );
+        });
+        return updated;
+      });
+    } catch (error) {
+      console.error('Failed to pin message:', error);
+      throw error;
+    }
+  }, []);
+
+  // Unpin message
+  const unpinMessage = useCallback(async (messageId: string) => {
+    try {
+      await chatApi.unpinMessage(messageId);
+      setMessages(prev => {
+        const updated = { ...prev };
+        Object.keys(updated).forEach(partnerId => {
+          updated[partnerId] = updated[partnerId].map(msg =>
+            msg.id === messageId ? { ...msg, is_pinned: false } : msg
+          );
+        });
+        return updated;
+      });
+    } catch (error) {
+      console.error('Failed to unpin message:', error);
+      throw error;
+    }
+  }, []);
 
   // Initial load
   useEffect(() => {
@@ -581,6 +696,9 @@ export const useChat = () => {
     deleteMessage,
     clearConversation,
     editMessage,
+    reactToMessage,
+    pinMessage,
+    unpinMessage,
     sendTypingIndicator,
     loadMoreMessages,
   };

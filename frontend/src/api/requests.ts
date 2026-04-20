@@ -52,10 +52,6 @@ export const requestsApi = {
     return response.data;
   },
 
-  /**
-   * Get all requests you sent
-   * @param status - Optional filter by status (pending, accepted, rejected, cancelled)
-   */
   getSentRequests: async (status?: string) => {
     const params: any = {};
     if (status) params.status = status;
@@ -64,10 +60,6 @@ export const requestsApi = {
     return response.data;
   },
 
-  /**
-   * Get all requests you received
-   * @param status - Optional filter by status (defaults to "pending")
-   */
   getReceivedRequests: async (status: string = 'pending') => {
     const response = await apiClient.get<RequestResponse[]>('/requests/received', {
       params: { status }
@@ -75,18 +67,10 @@ export const requestsApi = {
     return response.data;
   },
 
-  /**
-   * Get pending requests you received (convenience method)
-   */
   getPendingRequests: async () => {
     return requestsApi.getReceivedRequests('pending');
   },
 
-  /**
-   * Respond to a request you received
-   * @param requestId - ID of the request
-   * @param status - 'accepted' or 'rejected'
-   */
   respondToRequest: async (requestId: string, status: 'accepted' | 'rejected') => {
     const response = await apiClient.put<RequestResponse>(
       `/requests/${requestId}`,
@@ -111,19 +95,11 @@ export const requestsApi = {
     return requestsApi.respondToRequest(requestId, 'rejected');
   },
 
-  /**
-   * Cancel a request you sent (only if pending)
-   * @param requestId - ID of the request
-   */
   cancelRequest: async (requestId: string) => {
     const response = await apiClient.delete<{ message: string }>(`/requests/${requestId}`);
     return response.data;
   },
 
-  /**
-   * Get all your accepted connections
-   * @returns List of connected students with details
-   */
   getConnections: async () => {
     const response = await apiClient.get<Connection[]>('/requests/connections');
     return response.data;
@@ -160,7 +136,6 @@ export const requestsApi = {
       },
       received: {
         pending: received,
-        // You can fetch other statuses if needed
       },
       connections,
       total_connections: connections.length,
@@ -177,10 +152,6 @@ export const requestsApi = {
     return connections.length;
   },
 
-  /**
-   * Check if you're connected with a student
-   * @param otherStudentId - ID of the other student
-   */
   isConnected: async (otherStudentId: string): Promise<boolean> => {
     const status = await requestsApi.checkConnectionStatus(otherStudentId);
     return status.status === 'you_sent_accepted' || status.status === 'they_sent_accepted';

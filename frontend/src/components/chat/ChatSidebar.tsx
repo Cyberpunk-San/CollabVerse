@@ -56,17 +56,17 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
   };
 
   return (
-    <div className="chat-sidebar w-80 border-r border-gray-200 bg-white flex flex-col h-full">
+    <div className="chat-sidebar w-80 border-r border-gray-200 dark:border-gray-800 bg-transparent flex flex-col h-full">
       <div className="p-4 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Messages</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Messages</h2>
         
         <div className="flex gap-2 mb-4">
           <button
             onClick={() => setView('chats')}
             className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
               view === 'chats'
-                ? 'bg-indigo-100 text-indigo-700'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
             }`}
           >
             <MessageSquare className="w-4 h-4 inline mr-2" />
@@ -81,8 +81,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             onClick={() => setView('connections')}
             className={`flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
               view === 'connections'
-                ? 'bg-indigo-100 text-indigo-700'
-                : 'text-gray-600 hover:bg-gray-100'
+                ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'
+                : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
             }`}
           >
             <Users className="w-4 h-4 inline mr-2" />
@@ -97,7 +97,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
             placeholder={`Search ${view}...`}
             value={searchQuery}
             onChange={handleSearch}
-            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
           />
         </div>
       </div>
@@ -123,8 +123,8 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                 <button
                   key={item.user_id}
                   onClick={() => onSelectChat(item.user_id)}
-                  className={`w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 transition-colors ${
-                    isActive ? 'bg-indigo-50' : ''
+                  className={`w-full px-4 py-3 flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
+                    isActive ? 'bg-indigo-50 dark:bg-indigo-900/20' : ''
                   }`}
                 >
                   <div className="relative">
@@ -138,7 +138,7 @@ export const ChatSidebar: React.FC<ChatSidebarProps> = ({
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <h3 className="text-sm font-medium text-gray-900 truncate">
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white truncate">
                         {item.username}
                       </h3>
                       {'last_message_time' in item && (

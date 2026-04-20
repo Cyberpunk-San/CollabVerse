@@ -19,6 +19,7 @@ export interface ChatMessageBase {
     file_size?: number | null;
     file_mime_type?: string | null;
     thumbnail_url?: string | null;
+    reply_to_id?: string | null;
 }
 
 export interface ChatMessageCreate extends ChatMessageBase { }
@@ -39,6 +40,11 @@ export interface ChatMessageResponse {
     edited_at?: string | null;
     sender_username?: string | null;
     receiver_username?: string | null;
+    is_pinned?: boolean;
+    pinned_at?: string | null;
+    reply_to_id?: string | null;
+    reply_to?: ChatMessageResponse | null;
+    reactions?: Record<string, string[]>; // emoji -> userIds
 }
 
 export interface FileUploadResponse {
@@ -127,4 +133,27 @@ export interface ChatStats {
 
 // Backward compatible aliases
 export type ChatMessage = ChatMessageResponse;
-export type WebSocketMessage = any;
+
+export type AnyWebSocketMessage = 
+    | { type: 'new_message'; message_id: string; from: string; text?: string; caption?: string; message_type?: string; file_url?: string; file_name?: string; file_size?: number; file_type?: string; thumbnail_url?: string; time?: string; from_username?: string; reply_to_id?: string }
+    | { type: 'typing'; from: string; typing: boolean; group_id?: string; user_id?: string }
+    | { type: 'message_read'; message_id: string }
+    | { type: 'messages_read'; read_by: string }
+    | { type: 'message_edited'; message_id: string; new_content: string; edited_at?: string }
+    | { type: 'message_reacted'; message_id: string; reactions: Record<string, string[]> }
+    | { type: 'message_pinned'; message_id: string }
+    | { type: 'message_unpinned'; message_id: string }
+    | { type: 'chat'; to: string; text: string; reply_to_id?: string }
+    | { type: 'file'; to: string; file_url: string; file_name: string; file_size: number; file_type: string; caption?: string; thumbnail_url?: string }
+    | { type: 'read'; message_id: string }
+    | { type: 'error'; message: string }
+    | { type: 'pong' }
+    | { type: 'user_online'; group_id: string; user_id: string }
+    | { type: 'user_offline'; group_id: string; user_id: string }
+    | { type: 'group_message'; group_id: string; message: any }
+    | { type: 'member_added'; group_id: string; user_id: string }
+    | { type: 'member_removed'; group_id: string; user_id: string }
+    | { type: 'message_reaction'; group_id: string; message_id: string; reactions: any }
+    | { type: 'online_status'; user_id: string; status: string };
+
+export type WebSocketMessage = AnyWebSocketMessage;

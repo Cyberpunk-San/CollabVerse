@@ -1,41 +1,86 @@
 # STAGE 1: Build the C++ Engine
 FROM gcc:latest AS builder
 
-# Create working directory for the engine
+# Install additional build tools
+RUN apt-get update && apt-get install -y \
+    cmake \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create working directory
 WORKDIR /app/engine
 
-# Copy the C++ source files and headers
+# Copy all C++ source files
 COPY ./engine /app/engine
 
-# Compile the C++ solver into a static binary
-# We combine main, dinic, and synergy logic into one executable
-RUN mkdir -p /app/bin && \
-    g++ -O3 src/main.cpp -o /app/bin/solver
+# Create bin directory
+RUN mkdir -p /app/bin
+
+# Compile the original solver (Dinic + Synergy)
+RUN echo "Compiling main solver..." && \
+    g++ -O3 -std=c++17 \
+        src/main.cpp \
+        -o /app/bin/solver
+
+# 🔴 NEW: Compile the ML Trainer
+RUN echo "Compiling ML Trainer..." && \
+    # Create build directory
+    mkdir -p /app/engine/src/ml_trainer/build && \
+    cd /app/engine/src/ml_trainer/build && \
+    # Compile with optimization and C++17
+    g++ -O3 -std=c++17 \
+        -I../ \
+        ../neural_network.cpp \
+        ../data_processor.cpp \
+        ../main.cpp \
+        -o /app/bin/ml_trainer \
+        -pthread
+
+# Verify binaries were created
+RUN ls -la /app/bin/ && \
+    file /app/bin/solver && \
+    file /app/bin/ml_trainer
 
 # STAGE 2: Run the Python FastAPI Backend
 FROM python:3.13-slim
 
-# Install system dependencies (like sqlite if needed)
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
-# Copy the compiled C++ binary from the builder stage
+# Copy compiled C++ binaries from builder
 COPY --from=builder /app/bin/solver ./bin/solver
-# Ensure the binary has execution permissions
-RUN chmod +x ./bin/solver
+COPY --from=builder /app/bin/ml_trainer ./bin/ml_trainer
 
-# Install Python dependencies
+# Set execution permissions
+RUN chmod +x ./bin/solver ./bin/ml_trainer
+
+# 🔴 NEW: Create directories for ML models and data
+RUN mkdir -p /app/models /app/data /app/logs
+
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the FastAPI application
 COPY . .
 
-# Expose the port FastAPI runs on
+# 🔴 NEW: Set environment variables for ML Trainer
+ENV ML_MODEL_PATH=/app/models
+ENV ML_DATA_PATH=/app/data
+ENV ML_LOG_PATH=/app/logs
+ENV PYTHONUNBUFFERED=1
+
+# Expose ports
 EXPOSE 8000
 
-# Start the application using uvicorn
+# 🔴 NEW: Health check to verify binaries
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Start the application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -1,10 +1,26 @@
-/* App-specific layout container styles */
+:root {
+  /* Sophisticated, muted palette */
+  --bg-main: #0f172a;           /* Deep Slate */
+  --grid-color: rgba(148, 163, 184, 0.08); /* Soft Steel Blue */
+  --accent-primary: #818cf8;    /* Muted Lavender-Indigo */
+  --accent-secondary: #94a3b8;  /* Cool Gray */
+  --glass-effect: rgba(255, 255, 255, 0.03);
+}
+
 #root {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-main);
+  /* The Grid System */
+  background-image: 
+    linear-gradient(var(--grid-color) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+  background-size: 40px 40px; /* Adjust for grid density */
+  color: #f8fafc;
+  font-family: 'Inter', -apple-system, sans-serif;
 }
 
 /* Ensure the main container in App fits properly */
@@ -13,40 +29,61 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  backdrop-filter: none; /* Keeps the grid visible */
 }
 
-/* Specific utilities for CollabVerse that aren't in Tailwind base */
+/* Refined Utility for Soft Glow */
 .text-glow {
-  text-shadow: 0 0 10px rgba(79, 70, 229, 0.4);
+  /* Subtle illumination rather than harsh neon */
+  text-shadow: 0 0 25px rgba(129, 140, 248, 0.3);
+  color: #ffffff;
 }
 
+/* Elegant Mesh Overlay */
 .bg-mesh {
-  background-color: #f8fafc;
-  background-image:
-    radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
-    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: -1;
+  /* Soft, organic organic gradients */
+  background: 
+    radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(148, 163, 184, 0.05) 0%, transparent 40%);
 }
 
-/* Animation durations and easing for specific transitions */
+/* Sophisticated Page Transitions */
 .page-transition-enter {
   opacity: 0;
-  transform: scale(0.98);
+  transform: translateY(8px);
 }
 
 .page-transition-enter-active {
   opacity: 1;
-  transform: scale(1);
-  transition: opacity 300ms, transform 300ms;
+  transform: translateY(0);
+  /* "Quintic" easing for a high-end feel */
+  transition: opacity 500ms cubic-bezier(0.22, 1, 0.36, 1), 
+              transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .page-transition-exit {
   opacity: 1;
-  transform: scale(1);
+  transform: translateY(0);
 }
 
 .page-transition-exit-active {
   opacity: 0;
-  transform: scale(0.98);
-  transition: opacity 300ms, transform 300ms;
+  transform: translateY(-8px);
+  transition: opacity 400ms cubic-bezier(0.22, 1, 0.36, 1), 
+              transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Scannable card utility for CollabVerse content */
+.modern-panel {
+  background: var(--glass-effect);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
 }

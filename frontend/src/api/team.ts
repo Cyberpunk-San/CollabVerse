@@ -111,7 +111,6 @@ export const teamsApi = {
     // First validate the team
     const validation = await teamsApi.validateTeam(studentIds);
     
-    // If you have additional endpoints for team analysis, add them here
     // For now, return enhanced validation
     return {
       ...validation,

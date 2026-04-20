@@ -1,13 +1,12 @@
 // frontend/src/types/websocket.ts
 import { WS_EVENTS } from '../api/constants';
 
-// ==================== CHAT WEBSOCKET TYPES ====================
 
-// Client -> Server messages (what you send)
 export interface ChatMessageWS {
     type: typeof WS_EVENTS.CHAT_MESSAGE; // 'chat'
     to: string;
     text: string;
+    reply_to_id?: string;
 }
 
 export interface ChatFileWS {
@@ -36,7 +35,6 @@ export interface PingWS {
     type: typeof WS_EVENTS.PING; // 'ping'
 }
 
-// Server -> Client messages (what you receive)
 export interface ChatNewMessageWS {
     type: 'new_message';
     from: string;
@@ -51,6 +49,7 @@ export interface ChatNewMessageWS {
     file_type?: string;
     caption?: string;
     thumbnail_url?: string;
+    reply_to_id?: string;
 }
 
 export interface ChatMessageSentWS {
@@ -83,6 +82,22 @@ export interface ChatTypingNotificationWS {
     typing: boolean;
 }
 
+export interface ChatMessageReactedWS {
+    type: 'message_reacted';
+    message_id: string;
+    reactions: Record<string, string[]>;
+}
+
+export interface ChatMessagePinnedWS {
+    type: 'message_pinned';
+    message_id: string;
+}
+
+export interface ChatMessageUnpinnedWS {
+    type: 'message_unpinned';
+    message_id: string;
+}
+
 export interface ErrorWS {
     type: 'error';
     message: string;
@@ -107,10 +122,12 @@ export type ChatWebSocketReceiveMessage =
     | ChatMessagesReadWS
     | ChatMessageEditedWS
     | ChatTypingNotificationWS
+    | ChatMessageReactedWS
+    | ChatMessagePinnedWS
+    | ChatMessageUnpinnedWS
     | ErrorWS
     | PongWS;
 
-// ==================== GROUP WEBSOCKET TYPES ====================
 
 // Client -> Server messages
 export interface GroupJoinWS {

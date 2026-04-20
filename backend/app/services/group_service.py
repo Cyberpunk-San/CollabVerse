@@ -375,7 +375,6 @@ class GroupService:
             "read_percentage": ((total_mentions - unread_mentions) / total_mentions * 100) if total_mentions > 0 else 100
         }
     
-    # ==================== UPDATED MESSAGE METHODS ====================
     
     @staticmethod
     def send_group_message(
@@ -565,7 +564,6 @@ class GroupService:
         
         return result
     
-    # ==================== POLLS ====================
     
     @staticmethod
     def create_poll(
@@ -778,7 +776,6 @@ class GroupService:
             "has_ended": poll.ends_at and poll.ends_at < datetime.utcnow()
         }
     
-    # ==================== REACTIONS (UPDATED) ====================
     
     @staticmethod
     def add_reaction(

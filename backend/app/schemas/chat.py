@@ -22,7 +22,7 @@ class ChatMessageBase(BaseModel):
     thumbnail_url: Optional[str] = None
 
 class ChatMessageCreate(ChatMessageBase):
-    pass
+    reply_to_id: Optional[str] = None
 
 class ChatMessageResponse(BaseModel):
     id: str
@@ -37,8 +37,12 @@ class ChatMessageResponse(BaseModel):
     thumbnail_url: Optional[str] = None
     is_read: bool
     created_at: datetime
-    sender_username: Optional[str] = None
     receiver_username: Optional[str] = None
+    is_pinned: bool = False
+    pinned_at: Optional[datetime] = None
+    reply_to_id: Optional[str] = None
+    reply_to: Optional['ChatMessageResponse'] = None
+    reactions: Optional[dict] = {}
     
     model_config = ConfigDict(from_attributes=True)
 

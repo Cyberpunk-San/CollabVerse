@@ -1,12 +1,14 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Button, IconButton, Box, Menu, MenuItem } from '@mui/material';
+import { AppBar, Toolbar, Typography, Button, IconButton, Box, Menu, MenuItem, Tooltip } from '@mui/material';
 import type { Theme } from '@mui/material/styles';
-import { Menu as MenuIcon, AccountCircle } from '@mui/icons-material';
-import { useAuth } from '../../hooks/useAuth';
+import { Menu as MenuIcon, AccountCircle, Brightness4, Brightness7 } from '@mui/icons-material';
+import { useAuthContext } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import { useThemeContext } from '../../contexts/ThemeContext';
 
 const Header: React.FC = () => {
-    const { isAuthenticated, user, logout } = useAuth();
+    const { isAuthenticated, user, logout } = useAuthContext();
+    const { mode, toggleTheme } = useThemeContext();
     const navigate = useNavigate();
     const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
 
@@ -44,6 +46,12 @@ const Header: React.FC = () => {
                     CollabVerse
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Tooltip title={`Switch to ${mode === 'light' ? 'dark' : 'light'} mode`}>
+                        <IconButton onClick={toggleTheme} color="inherit">
+                            {mode === 'dark' ? <Brightness7 /> : <Brightness4 />}
+                        </IconButton>
+                    </Tooltip>
+
                     {isAuthenticated ? (
                         <>
                             <Typography variant="body2" sx={{ mr: 1, display: { xs: 'none', sm: 'block' } }}>
@@ -60,20 +68,6 @@ const Header: React.FC = () => {
                                 <AccountCircle />
                             </IconButton>
                             <Menu
-                                slotProps={{
-                                    root: {
-                                        id: 'menu-appbar',
-                                        anchorOrigin: {
-                                            vertical: 'top',
-                                            horizontal: 'right',
-                                        },
-                                        keepMounted: true,
-                                        transformOrigin: {
-                                            vertical: 'top',
-                                            horizontal: 'right',
-                                        },
-                                    }
-                                }}
                                 anchorEl={anchorEl}
                                 open={Boolean(anchorEl)}
                                 onClose={handleClose}

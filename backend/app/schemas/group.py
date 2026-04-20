@@ -2,7 +2,6 @@ from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
-# ==================== MENTION SCHEMAS ====================
 
 class MentionCreate(BaseModel):
     user_ids: List[str]  # List of users to mention
@@ -40,7 +39,6 @@ class UserMentionStats(BaseModel):
     mentions_by_group: Dict[str, int]
     last_mention_at: Optional[datetime]
 
-# ==================== UPDATED GROUP MESSAGE SCHEMA ====================
 
 class GroupMessageResponse(BaseModel):
     id: str
@@ -76,7 +74,6 @@ class GroupMessageResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# ==================== REACTION SCHEMAS ====================
 
 class MessageReactionCreate(BaseModel):
     emoji: str
@@ -93,7 +90,6 @@ class MessageReactionResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# ==================== PINNED MESSAGES ====================
 
 class PinnedMessageResponse(BaseModel):
     id: str
@@ -108,7 +104,6 @@ class PinnedMessageResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# ==================== POLLS ====================
 
 class PollOption(BaseModel):
     id: str
@@ -138,7 +133,6 @@ class PollResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# ==================== EXISTING SCHEMAS (UPDATED) ====================
 
 class GroupCreate(BaseModel):
     name: str

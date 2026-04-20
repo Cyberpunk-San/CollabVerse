@@ -45,7 +45,8 @@ class ChatService:
         file_name: str = None,
         file_size: int = None,
         file_mime_type: str = None,
-        thumbnail_url: str = None
+        thumbnail_url: str = None,
+        reply_to_id: str = None
     ) -> Tuple[Optional[ChatMessage], Optional[str]]:
         
         sender = db.query(Student).filter(Student.id == sender_id).first()
@@ -90,7 +91,8 @@ class ChatService:
             thumbnail_url=thumbnail_url,
             is_read=False,
             deleted_by_sender=False,
-            deleted_by_receiver=False
+            deleted_by_receiver=False,
+            reply_to_id=reply_to_id
         )
         
         db.add(message)

@@ -13,7 +13,7 @@ interface PrivateRouteProps {
  * Displays a loading state while authentication status is being determined.
  */
 const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
-    const { isAuthenticated, isLoading } = useAuthContext();
+    const { isAuthenticated, isGithubVerified, isLoading } = useAuthContext();
     const location = useLocation();
 
     if (isLoading) {
@@ -38,6 +38,11 @@ const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     if (!isAuthenticated) {
         // Redirect to login page, but save the current location they were trying to go to
         return <Navigate to="/login" state={{ from: location }} replace />;
+    }
+
+    if (!isGithubVerified && location.pathname !== '/verify') {
+        // Redirect to verification page if not verified
+        return <Navigate to="/verify" replace />;
     }
 
     return <>{children}</>;

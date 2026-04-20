@@ -269,17 +269,14 @@ export const chatApi = {
    * @param receiverId - ID of message recipient
    * @param content - Message text
    */
-  sendTextMessage: async (receiverId: string, content: string) => {
-    const response = await apiClient.post<ChatMessageResponse>(
-      '/chat/message',
-      null,
-      {
-        params: {
-          receiver_id: receiverId,
-          content
-        }
-      }
-    );
+  sendMessage: async (receiverId: string, content: string, replyToId?: string): Promise<ChatMessageResponse> => {
+    const response = await apiClient.post<ChatMessageResponse>(`/chat/message`, null, {
+      params: {
+        receiver_id: receiverId,
+        content,
+        reply_to_id: replyToId
+      },
+    });
     return response.data;
   },
 
@@ -368,10 +365,6 @@ export const chatApi = {
     return response.data;
   },
 
-  /**
-   * Check if you can chat with a user
-   * @param otherUserId - ID of the other user
-   */
   checkCanChat: async (otherUserId: string) => {
     const response = await apiClient.get<CanChatResponse>(
       `/chat/can-chat/${otherUserId}`
@@ -434,11 +427,23 @@ export const chatApi = {
    * Clear entire conversation (for current user only)
    * @param otherUserId - ID of the other user
    */
-  clearConversationForMe: async (otherUserId: string) => {
-    const response = await apiClient.delete<{
-      success: boolean;
-      deleted_count: number;
-    }>(`/chat/conversation/${otherUserId}`);
+  deleteConversation: async (otherUserId: string): Promise<{ success: boolean; deleted_count: number }> => {
+    const response = await apiClient.delete<{ success: boolean; deleted_count: number }>(`/chat/conversation/${otherUserId}`);
+    return response.data;
+  },
+
+  reactToMessage: async (messageId: string, emoji: string): Promise<{ success: boolean; reactions: any }> => {
+    const response = await apiClient.post<{ success: boolean; reactions: any }>(`/chat/message/${messageId}/react`, { emoji });
+    return response.data;
+  },
+
+  pinMessage: async (messageId: string): Promise<{ success: boolean }> => {
+    const response = await apiClient.post<{ success: boolean }>(`/chat/message/${messageId}/pin`);
+    return response.data;
+  },
+
+  unpinMessage: async (messageId: string): Promise<{ success: boolean }> => {
+    const response = await apiClient.delete<{ success: boolean }>(`/chat/message/${messageId}/pin`);
     return response.data;
   },
 

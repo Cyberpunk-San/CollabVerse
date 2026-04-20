@@ -19,9 +19,15 @@ class ChatMessage(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     deleted_by_sender = Column(Boolean, default=False)
     deleted_by_receiver = Column(Boolean, default=False)
+    is_pinned = Column(Boolean, default=False)
+    pinned_at = Column(DateTime, nullable=True)
+    reply_to_id = Column(String, ForeignKey("chat_messages.id"), nullable=True)
+    reactions = Column(JSON, default={})  # {emoji: [user_ids]}
     edited_at = Column(DateTime, nullable=True)
+    
     sender = relationship("Student", foreign_keys=[sender_id])
     receiver = relationship("Student", foreign_keys=[receiver_id])
+    reply_to = relationship("ChatMessage", remote_side=[id])
 
 class ChatFile(Base):
     __tablename__ = "chat_files"

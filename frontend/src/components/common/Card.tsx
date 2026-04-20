@@ -30,9 +30,9 @@ export const Card: React.FC<CardProps> = ({
   skeletonLines = 3,
   onClick
 }) => {
-  const baseClasses = 'bg-white overflow-hidden transition-all duration-200';
-  const borderClasses = bordered ? 'border border-gray-200' : '';
-  const hoverClasses = hoverable ? 'hover:shadow-lg hover:scale-[1.02] hover:border-indigo-200 cursor-pointer' : '';
+  const baseClasses = 'card overflow-hidden animate-slide-in-up';
+  const borderClasses = '';
+  const hoverClasses = hoverable ? 'hover-lift cursor-pointer' : '';
   const clickableClasses = onClick ? 'cursor-pointer' : '';
 
   const renderSkeleton = () => (
@@ -62,11 +62,11 @@ export const Card: React.FC<CardProps> = ({
       onClick={onClick}
     >
       {(title || subtitle || headerAction) && (
-        <div className="px-6 py-4 border-b border-gray-200">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
           <div className="flex items-center justify-between">
             <div>
-              {title && <h3 className="text-lg font-semibold text-gray-900">{title}</h3>}
-              {subtitle && <p className="mt-1 text-sm text-gray-500">{subtitle}</p>}
+              {title && <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{title}</h3>}
+              {subtitle && <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{subtitle}</p>}
             </div>
             {headerAction && <div>{headerAction}</div>}
           </div>
@@ -78,7 +78,7 @@ export const Card: React.FC<CardProps> = ({
       </div>
 
       {footer && !loading && (
-        <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+        <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-800">
           {footer}
         </div>
       )}

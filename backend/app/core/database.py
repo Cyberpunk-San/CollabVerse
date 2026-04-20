@@ -6,9 +6,10 @@ from app.core.config import settings
 #database for fastapi
 kwargs = {}
 if settings.DATABASE_URL.startswith("sqlite"):
-    # SQLite: use StaticPool — single shared connection, no pool exhaustion
+    # SQLite: use NullPool to ensure fresh connections per request, avoiding threading/InterfaceErrors
+    from sqlalchemy.pool import NullPool
     kwargs["connect_args"] = {"check_same_thread": False}
-    kwargs["poolclass"] = StaticPool
+    kwargs["poolclass"] = NullPool
 else:
     kwargs["pool_size"] = 20
     kwargs["max_overflow"] = 20

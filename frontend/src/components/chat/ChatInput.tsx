@@ -2,13 +2,14 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Smile, Paperclip, Send, X, Image, File, Mic, StopCircle } from 'lucide-react';
 import EmojiPicker, { Theme } from 'emoji-picker-react';
 
-
 interface ChatInputProps {
   onSendMessage: (content: string) => void;
   onSendFile?: (file: File, caption?: string) => void;
   onTyping?: (isTyping: boolean) => void;
   disabled?: boolean;
   placeholder?: string;
+  replyingTo?: { id: string; content?: string | null; sender_username?: string | null } | null;
+  onCancelReply?: () => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
@@ -16,7 +17,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   onSendFile,
   onTyping,
   disabled = false,
-  placeholder = 'Type a message...'
+  placeholder = 'Type a message...',
+  replyingTo = null,
+  onCancelReply
 }) => {
   const [message, setMessage] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -34,8 +37,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const emojiPickerRef = useRef<HTMLDivElement>(null);
   const emojiButtonRef = useRef<HTMLButtonElement>(null);
   const typingTimeoutRef = useRef<any>(null);
-
-
 
   useEffect(() => {
     if (inputRef.current) {
@@ -73,13 +74,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       }
     };
 
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
-
 
   const handleSend = () => {
     if (attachmentPreview) {
@@ -134,17 +133,33 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   const onEmojiClick = (emojiData: any) => {
     setMessage((prev: string) => prev + emojiData.emoji);
-    // Optionally focus input after selection
     inputRef.current?.focus();
   };
 
-
-
   return (
-    <div className="chat-input relative border-t border-gray-200 bg-white p-4">
+    <div className="chat-input relative border-t border-gray-200 dark:border-gray-800 bg-transparent p-4">
+      
+      {replyingTo && (
+        <div className="reply-preview mb-4 p-3 bg-indigo-50 dark:bg-indigo-900/20 border-l-4 border-indigo-500 rounded-lg flex items-start justify-between animate-entrance">
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-indigo-600 dark:text-indigo-400 mb-1">
+              Replying to {replyingTo.sender_username || 'User'}
+            </p>
+            <p className="text-sm text-gray-600 dark:text-gray-300 truncate">
+              {replyingTo.content}
+            </p>
+          </div>
+          <button 
+            onClick={onCancelReply}
+            className="p-1 text-gray-400 hover:text-indigo-600 transition-colors"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      )}
 
       {attachmentPreview && (
-        <div className="attachment-preview mb-4 p-3 bg-gray-50 rounded-lg">
+        <div className="attachment-preview mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           <div className="flex items-start gap-3">
             {attachmentPreview.type === 'image' ? (
               <div className="relative w-20 h-20 rounded-lg overflow-hidden">
@@ -161,7 +176,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             )}
 
             <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900 mb-2">
+              <p className="text-sm font-medium text-gray-900 dark:text-white mb-2">
                 {attachmentPreview.file.name}
               </p>
               <input
@@ -169,7 +184,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
                 placeholder="Add a caption (optional)"
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
               />
             </div>
 
@@ -187,20 +202,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         <div className="relative">
           <button
             onClick={() => setShowFileMenu(!showFileMenu)}
-            className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors"
             disabled={disabled}
           >
             <Paperclip className="w-5 h-5" />
           </button>
 
           {showFileMenu && (
-            <div className="absolute bottom-full left-0 mb-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+            <div className="absolute bottom-full left-0 mb-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
               <button
                 onClick={() => {
                   fileInputRef.current?.click();
                   setShowFileMenu(false);
                 }}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
               >
                 <Image className="w-4 h-4" />
                 <span>Image / Video</span>
@@ -210,14 +225,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   fileInputRef.current?.click();
                   setShowFileMenu(false);
                 }}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
               >
                 <File className="w-4 h-4" />
                 <span>Document</span>
               </button>
               <button
                 onClick={handleVoiceRecord}
-                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                className="w-full px-4 py-3 text-left text-sm hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-300"
               >
                 {isRecording ? (
                   <>
@@ -246,12 +261,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         <button
           ref={emojiButtonRef}
           onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-          className={`p-2 rounded-full transition-colors ${showEmojiPicker ? 'text-indigo-600 bg-indigo-50' : 'text-gray-500 hover:text-indigo-600 hover:bg-gray-100'}`}
+          className={`p-2 rounded-full transition-colors ${showEmojiPicker ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-gray-500 dark:text-gray-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-gray-100 dark:hover:bg-gray-800'}`}
           disabled={disabled}
         >
           <Smile className="w-5 h-5" />
         </button>
-
 
         <div className="flex-1">
           <textarea
@@ -262,7 +276,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             placeholder={placeholder}
             disabled={disabled || !!attachmentPreview}
             rows={1}
-            className="w-full px-4 py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none max-h-32"
+            className="w-full px-4 py-3 text-sm border border-gray-300 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none max-h-32 bg-white dark:bg-gray-900 text-gray-900 dark:text-white"
           />
         </div>
 
@@ -276,17 +290,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       </div>
 
       {showEmojiPicker && (
-        <div ref={emojiPickerRef} className="absolute bottom-full left-0 mb-2 z-50 shadow-2xl rounded-xl overflow-hidden bg-white border border-gray-200">
-          <div className="p-2 bg-indigo-50 text-indigo-600 text-xs font-bold">EMOJI PICKER</div>
+        <div ref={emojiPickerRef} className="absolute bottom-full left-0 mb-2 z-50 shadow-2xl rounded-xl overflow-hidden bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
           <EmojiPicker
             onEmojiClick={onEmojiClick}
-            theme={Theme.LIGHT}
+            theme={Theme.AUTO}
             width={350}
             height={400}
           />
         </div>
       )}
-
     </div>
   );
 };

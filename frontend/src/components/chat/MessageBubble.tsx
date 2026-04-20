@@ -12,7 +12,8 @@ import {
   Video,
   Music,
   FileText,
-  Trash2
+  Trash2,
+  Pin
 } from 'lucide-react';
 import type { ChatMessageResponse } from '../../types/chat';
 import { formatToLocalTime } from '../../utils/date';
@@ -182,8 +183,34 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
                 : 'bg-gray-100 text-gray-900'
               }
               ${message.file_url ? 'pb-2' : ''}
+              ${message.is_pinned ? 'ring-2 ring-yellow-400 dark:ring-yellow-600' : ''}
             `}
           >
+            {/* Pinned Indicator */}
+            {message.is_pinned && (
+              <div className="flex items-center gap-1 mb-1 text-[10px] font-bold text-yellow-600 dark:text-yellow-400 uppercase tracking-wider">
+                <Pin className="w-3 h-3" />
+                <span>Pinned</span>
+              </div>
+            )}
+
+            {/* Reply Context */}
+            {message.reply_to && (
+              <div 
+                className={`
+                  mb-2 p-2 rounded-lg text-xs border-l-4 
+                  ${isOwn ? 'bg-indigo-700/50 border-indigo-300' : 'bg-gray-200 border-gray-400'}
+                `}
+              >
+                <p className="font-bold opacity-75 mb-1">
+                  {message.reply_to.sender_username || 'User'}
+                </p>
+                <p className="truncate opacity-90 italic">
+                  {message.reply_to.content}
+                </p>
+              </div>
+            )}
+
             {/* File attachment */}
             {message.file_url && (
               <div className="mb-2">
@@ -257,6 +284,28 @@ export const MessageBubble: React.FC<MessageBubbleProps> = ({
               </span>
             )}
           </div>
+
+          {/* Reactions */}
+          {message.reactions && Object.keys(message.reactions).length > 0 && (
+            <div className={`flex flex-wrap gap-1 mt-1 ${isOwn ? 'justify-end' : 'justify-start'}`}>
+              {Object.entries(message.reactions).map(([emoji, userIds]) => (
+                <button
+                  key={emoji}
+                  onClick={() => onReact?.(emoji)}
+                  className={`
+                    flex items-center gap-1 px-1.5 py-0.5 rounded-full text-xs transition-colors
+                    ${isOwn 
+                      ? 'bg-indigo-500/30 hover:bg-indigo-500/50 text-white' 
+                      : 'bg-gray-200 hover:bg-gray-300 text-gray-700'}
+                  `}
+                  title={`${userIds.length} reaction(s)`}
+                >
+                  <span>{emoji}</span>
+                  <span className="font-medium">{userIds.length}</span>
+                </button>
+              ))}
+            </div>
+          )}
 
           {/* Message actions dropdown */}
           {showActions && !isEditing && (

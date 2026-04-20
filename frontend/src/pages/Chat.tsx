@@ -1,16 +1,16 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useChat } from '../hooks/useChat';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../contexts/AuthContext';
 import { ChatWindow, ChatSidebar } from '../components/chat';
-import { EmptyState, Skeleton } from '../components/common';
+import { EmptyState, Skeleton, Button } from '../components/common';
 import { useToast } from '../components/common/Toast';
-import { Search } from 'lucide-react';
+import { Search, MessageSquare, Users, WifiOff, Zap } from 'lucide-react';
 
 const Chat: React.FC = () => {
   const { userId } = useParams<{ userId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const toast = useToast();
   const initialLoadRef = useRef(false);
 
@@ -31,6 +31,8 @@ const Chat: React.FC = () => {
     sendTypingIndicator,
     editMessage,
     deleteMessage,
+    pinMessage,
+    reactToMessage,
     loadConversations,
     loadConnections
   } = useChat();
@@ -39,7 +41,6 @@ const Chat: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filteredConnections, setFilteredConnections] = useState(connections);
 
-  // Initial load
   useEffect(() => {
     if (!initialLoadRef.current && user) {
       loadConversations();
@@ -48,7 +49,6 @@ const Chat: React.FC = () => {
     }
   }, [user, loadConversations, loadConnections]);
 
-  // Handle URL param
   useEffect(() => {
     if (userId && userId !== activeChat) {
       setActiveChat(userId);
@@ -56,7 +56,6 @@ const Chat: React.FC = () => {
     }
   }, [userId, setActiveChat, loadConversation, activeChat]);
 
-  // Handle typing indicator
   useEffect(() => {
     if (activeChat && isTyping[activeChat]) {
       setPartnerTyping(true);
@@ -65,9 +64,8 @@ const Chat: React.FC = () => {
     }
   }, [isTyping, activeChat]);
 
-  // Filter connections based on search
   useEffect(() => {
-    if (searchQuery) {
+    if (searchQuery && searchQuery !== 'search') {
       const filtered = connections.filter(conn =>
         conn.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
         conn.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -78,14 +76,10 @@ const Chat: React.FC = () => {
     }
   }, [connections, searchQuery]);
 
-  const handleSendMessage = async (content: string) => {
-    if (!activeChat) {
-      toast.error('No active chat selected');
-      return;
-    }
-
+  const handleSendMessage = async (content: string, replyToId?: string) => {
+    if (!activeChat) return;
     try {
-      await sendMessage(activeChat, content);
+      await sendMessage(activeChat, content, replyToId);
     } catch (error) {
       toast.error('Failed to send message');
     }
@@ -93,7 +87,6 @@ const Chat: React.FC = () => {
 
   const handleSendFile = async (file: File, caption?: string) => {
     if (!activeChat) return;
-
     try {
       await sendFileMessage(activeChat, file, caption);
     } catch (error) {
@@ -102,21 +95,16 @@ const Chat: React.FC = () => {
   };
 
   const handleTyping = (typing: boolean) => {
-    if (activeChat) {
-      sendTypingIndicator(activeChat, typing);
-    }
+    if (activeChat) sendTypingIndicator(activeChat, typing);
   };
 
   const handleMarkAsRead = () => {
-    if (activeChat) {
-      markAsRead(activeChat);
-    }
+    if (activeChat) markAsRead(activeChat);
   };
 
   const handleEditMessage = async (messageId: string, newContent: string) => {
     try {
       await editMessage(messageId, newContent);
-      toast.success('Message edited');
     } catch (error) {
       toast.error('Failed to edit message');
     }
@@ -125,9 +113,24 @@ const Chat: React.FC = () => {
   const handleDeleteMessage = async (messageId: string) => {
     try {
       await deleteMessage(messageId);
-      toast.success('Message deleted');
     } catch (error) {
       toast.error('Failed to delete message');
+    }
+  };
+
+  const handlePinMessage = async (messageId: string) => {
+    try {
+      await pinMessage(messageId);
+    } catch (error) {
+      toast.error('Failed to pin message');
+    }
+  };
+
+  const handleReactToMessage = async (messageId: string, emoji: string) => {
+    try {
+      await reactToMessage(messageId, emoji);
+    } catch (error) {
+      toast.error('Failed to react to message');
     }
   };
 
@@ -141,60 +144,67 @@ const Chat: React.FC = () => {
   if (!user) return null;
 
   return (
-    <div className="h-full flex bg-white overflow-hidden">
-      {/* Chat Sidebar */}
-      <div className="w-80 border-r border-gray-200 flex flex-col">
-        {/* Search Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+    <div className="h-full flex overflow-hidden bg-slate-950/50">
+      {/* Dynamic Chat Sidebar */}
+      <aside className="w-85 border-r border-white/5 bg-slate-900/30 backdrop-blur-2xl flex flex-col animate-entrance">
+        {/* Search & Header */}
+        <div className="p-6 space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">Communications</h2>
+            {!isConnected && <WifiOff size={14} className="text-amber-500 animate-pulse" />}
+          </div>
+          
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
             <input
               type="text"
-              placeholder="Search conversations..."
-              value={searchQuery}
+              placeholder="Search intel..."
+              value={searchQuery === 'search' ? '' : searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all"
             />
           </div>
         </div>
 
-        {/* Conversations/Connections Toggle */}
-        <div className="flex border-b border-gray-200">
+        {/* Operational Tabs */}
+        <div className="flex px-6 mb-4 gap-2">
           <button
             onClick={() => setSearchQuery('')}
-            className={`flex-1 px-4 py-2 text-sm font-medium ${!searchQuery
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              searchQuery !== 'search'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+            }`}
           >
-            Conversations
+            <MessageSquare size={14} /> Active
           </button>
           <button
             onClick={() => setSearchQuery('search')}
-            className={`flex-1 px-4 py-2 text-sm font-medium ${searchQuery === 'search'
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-gray-500 hover:text-gray-700'
-              }`}
+            className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+              searchQuery === 'search'
+                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20'
+                : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'
+            }`}
           >
-            Connections
+            <Users size={14} /> Network
           </button>
         </div>
 
-        {/* List */}
-        <div className="flex-1 overflow-y-auto">
+        {/* Scrollable Personnel List */}
+        <div className="flex-1 overflow-y-auto custom-scrollbar px-3 pb-6">
           {isLoading ? (
-            <div className="p-4 space-y-4">
-              {[1, 2, 3, 4, 5].map(i => (
-                <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="flex-1">
-                    <Skeleton className="h-4 w-24 mb-2" />
-                    <Skeleton className="h-3 w-32" />
+            <div className="p-4 space-y-6">
+              {[1, 2, 3, 4].map(i => (
+                <div key={i} className="flex items-center gap-4 animate-pulse">
+                  <div className="w-12 h-12 bg-white/5 rounded-2xl" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-3 w-20 bg-white/5 rounded" />
+                    <div className="h-2 w-full bg-white/5 rounded opacity-50" />
                   </div>
                 </div>
               ))}
             </div>
-          ) : !searchQuery ? (
+          ) : searchQuery !== 'search' && !searchQuery ? (
             <ChatSidebar
               conversations={conversations}
               connections={connections}
@@ -205,79 +215,89 @@ const Chat: React.FC = () => {
               isLoading={isLoading}
             />
           ) : (
-            <div className="p-4 space-y-2">
+            <div className="space-y-1 animate-entrance">
               {filteredConnections.length > 0 ? (
                 filteredConnections.map(conn => (
                   <button
                     key={conn.user_id}
                     onClick={() => handleSelectChat(conn.user_id)}
-                    className="w-full p-3 flex items-center gap-3 hover:bg-gray-50 rounded-lg transition-colors"
+                    className="w-full p-4 flex items-center gap-4 hover:bg-white/5 rounded-[1.5rem] transition-all group border border-transparent hover:border-white/5"
                   >
-                    <div className="relative">
-                      <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center text-white font-medium">
+                    <div className="relative shrink-0">
+                      <div className="w-12 h-12 bg-gradient-to-br from-indigo-500/20 to-purple-600/20 rounded-2xl flex items-center justify-center text-indigo-400 font-black border border-indigo-500/20 group-hover:scale-105 transition-transform">
                         {conn.username.charAt(0).toUpperCase()}
                       </div>
                       {conn.is_online && (
-                        <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-white" />
+                        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-green-500 rounded-full border-4 border-slate-900" />
                       )}
                     </div>
-                    <div className="flex-1 text-left">
-                      <p className="text-sm font-medium text-gray-900">{conn.username}</p>
-                      <p className="text-xs text-gray-500">{conn.email}</p>
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="text-sm font-black text-slate-200 truncate tracking-tight">{conn.username}</p>
+                      <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest truncate">{conn.email}</p>
                     </div>
                   </button>
                 ))
               ) : (
-                <EmptyState
-                  type="search"
-                  title="No results found"
-                  description="No connections match your search"
-                />
+                <div className="py-20 text-center opacity-30">
+                    <Search size={40} className="mx-auto mb-4" />
+                    <p className="text-xs font-black uppercase tracking-widest">No matching intel</p>
+                </div>
               )}
             </div>
           )}
         </div>
-      </div>
+      </aside>
 
-      {/* Chat Window */}
-      <div className="flex-1">
+      {/* Main Chat Terminal */}
+      <main className="flex-1 min-w-0 bg-slate-950/20 relative">
         {activeChat ? (
-          <ChatWindow
-            partnerId={activeChat}
-            partnerUsername={activePartner?.username || 'User'}
-            messages={messages[activeChat] || []}
-            isOnline={activePartner?.is_online}
-            isTyping={partnerTyping}
-            isLoading={isLoading}
-            onSendMessage={handleSendMessage}
-            onSendFile={handleSendFile}
-            onTyping={handleTyping}
-            onMarkAsRead={handleMarkAsRead}
-            onLoadMore={() => loadMoreMessages(activeChat)}
-            onEditMessage={handleEditMessage}
-            onDeleteMessage={handleDeleteMessage}
-            hasMore={true}
-          />
-        ) : (
-          <div className="h-full flex items-center justify-center bg-gray-50">
-            <EmptyState
-              type="chat"
-              title="No active chat"
-              description="Choose a conversation from the sidebar or start a new one"
-              action={{
-                label: "Find Connections",
-                onClick: () => setSearchQuery('search')
-              }}
+          <div className="h-full animate-entrance">
+            <ChatWindow
+              partnerId={activeChat}
+              partnerUsername={activePartner?.username || 'User'}
+              messages={messages[activeChat] || []}
+              isOnline={activePartner?.is_online}
+              isTyping={partnerTyping}
+              isLoading={isLoading}
+              onSendMessage={handleSendMessage}
+              onSendFile={handleSendFile}
+              onTyping={handleTyping}
+              onMarkAsRead={handleMarkAsRead}
+              onLoadMore={() => loadMoreMessages(activeChat)}
+              onEditMessage={handleEditMessage}
+              onDeleteMessage={handleDeleteMessage}
+              onPinMessage={handlePinMessage}
+              onReactToMessage={handleReactToMessage}
+              hasMore={true}
             />
           </div>
+        ) : (
+          <div className="h-full flex items-center justify-center p-12">
+            <div className="card-modern max-w-md w-full p-12 text-center border-dashed bg-white/5">
+                <div className="w-20 h-20 bg-indigo-600/10 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl">
+                    <Zap size={40} className="text-indigo-500" />
+                </div>
+                <h2 className="text-3xl font-black text-white tracking-tighter mb-3 uppercase">Frequency Silent</h2>
+                <p className="text-slate-500 mb-10 leading-relaxed font-medium">Select a direct communication link or scan your network to initiate a secure broadcast.</p>
+                <Button 
+                    className="btn-modern !px-12 !py-4"
+                    onClick={() => setSearchQuery('search')}
+                >
+                    Initialize Connection
+                </Button>
+            </div>
+          </div>
         )}
-      </div>
+      </main>
 
-      {/* Connection Status */}
+      {/* Connectivity Status Overlay */}
       {!isConnected && (
-        <div className="fixed bottom-4 right-4 bg-yellow-100 text-yellow-800 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2 animate-slide-in">
-          <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-          <span className="text-sm">Reconnecting...</span>
+        <div className="fixed bottom-8 right-8 glass border-amber-500/20 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-4 animate-slide-in z-50">
+          <div className="relative">
+            <div className="w-3 h-3 bg-amber-500 rounded-full animate-pulse" />
+            <div className="absolute inset-0 w-3 h-3 bg-amber-500 rounded-full animate-ping opacity-40" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500">Attempting Reconnection</span>
         </div>
       )}
     </div>

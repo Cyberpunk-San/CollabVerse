@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Depends, Header, WebSocket, WebSocketDisconnect, File, UploadFile, Form, Query, BackgroundTasks
+from fastapi import APIRouter, HTTPException, Depends, Header, WebSocket, WebSocketDisconnect, File, UploadFile, Form, Query, BackgroundTasks, Body
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
@@ -87,7 +87,7 @@ async def send_file_message(
             FileUploadService.delete_file(file_info["file_url"])
         raise HTTPException(status_code=400, detail=error)
     
-    background_tasks.add_task(send_realtime_notification, student_id, receiver_id, message)
+    background_tasks.add_task(send_realtime_notification, student_id, receiver_id, message.id)
     return enrich_message_response(db, message)
 
 @router.post("/send-file-url")
@@ -126,6 +126,7 @@ def send_file_by_url(
 def send_text_message(
     receiver_id: str = Query(..., description="ID of user to send message to"),
     content: str = Query(..., description="Message text"),
+    reply_to_id: Optional[str] = Query(None, description="ID of message being replied to"),
     student_id: str = Depends(get_current_user),
     db: Session = Depends(get_db),
     background_tasks: BackgroundTasks = BackgroundTasks()
@@ -135,13 +136,14 @@ def send_text_message(
         sender_id=student_id,
         receiver_id=receiver_id,
         content=content,
-        message_type="text"
+        message_type="text",
+        reply_to_id=reply_to_id
     )
     
     if error:
         raise HTTPException(status_code=400, detail=error)
     
-    background_tasks.add_task(send_realtime_notification, student_id, receiver_id, message)
+    background_tasks.add_task(send_realtime_notification, student_id, receiver_id, message.id)
     return enrich_message_response(db, message)
 
 @router.get("/conversation/{other_user_id}", response_model=List[ChatMessageResponse])
@@ -404,6 +406,82 @@ def get_chat_stats(
     stats = ChatService.get_chat_statistics(db, student_id)
     return stats
 
+@router.post("/message/{message_id}/react")
+async def react_to_message_endpoint(
+    message_id: str,
+    emoji: str = Body(..., embed=True),
+    student_id: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    reaction, error = ChatService.react_to_message(db, message_id, student_id, emoji)
+    
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+    
+    message = db.query(ChatMessage).filter(ChatMessage.id == message_id).first()
+    if message:
+        # Notify sender and receiver about the reaction
+        notification_data = {
+            "type": "message_reacted",
+            "message_id": message_id,
+            "reactor_id": student_id,
+            "emoji": emoji,
+            "reaction_id": reaction["id"]
+        }
+        background_tasks.add_task(manager.send_personal_message, notification_data, message.sender_id)
+        if message.receiver_id != message.sender_id:
+            background_tasks.add_task(manager.send_personal_message, notification_data, message.receiver_id)
+    
+    return {"success": True, "reactions": reaction}
+
+@router.post("/message/{message_id}/pin")
+async def pin_message_endpoint(
+    message_id: str,
+    student_id: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    success, error = ChatService.pin_message(db, message_id, student_id)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+    
+    message = db.query(ChatMessage).filter(ChatMessage.id == message_id).first()
+    if message:
+        notification = {
+            "type": "message_pinned",
+            "message_id": message_id,
+            "pinned_by": student_id
+        }
+        background_tasks.add_task(manager.send_personal_message, notification, message.sender_id)
+        if message.receiver_id != message.sender_id:
+            background_tasks.add_task(manager.send_personal_message, notification, message.receiver_id)
+            
+    return {"success": True}
+
+@router.delete("/message/{message_id}/pin")
+async def unpin_message_endpoint(
+    message_id: str,
+    student_id: str = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    background_tasks: BackgroundTasks = BackgroundTasks()
+):
+    success, error = ChatService.unpin_message(db, message_id, student_id)
+    if error:
+        raise HTTPException(status_code=400, detail=error)
+    
+    message = db.query(ChatMessage).filter(ChatMessage.id == message_id).first()
+    if message:
+        notification = {
+            "type": "message_unpinned",
+            "message_id": message_id
+        }
+        background_tasks.add_task(manager.send_personal_message, notification, message.sender_id)
+        if message.receiver_id != message.sender_id:
+            background_tasks.add_task(manager.send_personal_message, notification, message.receiver_id)
+            
+    return {"success": True}
+
 @router.delete("/message/{message_id}")
 def delete_message_for_me(
     message_id: str,
@@ -657,9 +735,13 @@ async def handle_read_receipt(user_id: str, message_id: str):
             "read_by": user_id
         }, sender_id)
 
-async def send_realtime_notification(sender_id: str, receiver_id: str, message: ChatMessage):
+async def send_realtime_notification(sender_id: str, receiver_id: str, message_id: str):
     db = next(get_db())
     try:
+        message = db.query(ChatMessage).filter(ChatMessage.id == message_id).first()
+        if not message:
+            return
+        
         sender = db.query(Student).filter(Student.id == sender_id).first()
         sender_username = sender.github_username if sender else None
     finally:
@@ -707,8 +789,29 @@ def enrich_message_response(db: Session, message: ChatMessage) -> dict:
         "is_read": message.is_read,
         "created_at": message.created_at,
         "sender_username": sender.github_username if sender else None,
-        "receiver_username": receiver.github_username if receiver else None
+        "receiver_username": receiver.github_username if receiver else None,
+        "is_pinned": message.is_pinned,
+        "pinned_at": message.pinned_at,
+        "reply_to_id": message.reply_to_id,
+        "reactions": message.reactions or {}
     }
+
+    if message.reply_to_id:
+        reply_msg = db.query(ChatMessage).filter(ChatMessage.id == message.reply_to_id).first()
+        if reply_msg:
+            # Recursively enrich but limit depth to avoid infinite loops if any (shouldn't happen with IDs)
+            # Actually, just provide a simple version to avoid recursion complexity
+            reply_sender = db.query(Student).filter(Student.id == reply_msg.sender_id).first()
+            response["reply_to"] = {
+                "id": reply_msg.id,
+                "sender_id": reply_msg.sender_id,
+                "receiver_id": reply_msg.receiver_id,
+                "content": reply_msg.content,
+                "message_type": reply_msg.message_type,
+                "is_read": reply_msg.is_read,
+                "created_at": reply_msg.created_at,
+                "sender_username": reply_sender.github_username if reply_sender else "Unknown"
+            }
     
     if message.file_url:
         response.update({

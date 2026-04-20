@@ -7,7 +7,7 @@ from app.core.config import settings
 from app.core.database import Base, engine
 from app.core.logging import setup_logging
 
-from app.api import students, repos, teams, profile, requests, chat, group, auth, verify, websocket, stats
+from app.api import students, repos, teams, profile, requests, chat, group, auth, verify, websocket, stats, ml
 
 
 def create_app() -> FastAPI:
@@ -71,6 +71,7 @@ def create_app() -> FastAPI:
     api_router.include_router(auth.router)
     api_router.include_router(verify.router)
     api_router.include_router(stats.router)
+    api_router.include_router(ml.router)
     
     app.include_router(api_router)
     app.include_router(websocket.router, prefix="/ws")

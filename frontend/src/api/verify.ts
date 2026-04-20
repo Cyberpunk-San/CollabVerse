@@ -78,12 +78,6 @@ export const verifyApi = {
     return response.data;
   },
 
-  /**
-   * Poll verification status (for use in components)
-   * @param studentId - Student ID
-   * @param interval - Polling interval in ms (default: 5000)
-   * @param timeout - Max time to poll in ms (default: 300000 = 5 minutes)
-   */
   pollVerification: async (
     studentId: string,
     interval: number = 5000,

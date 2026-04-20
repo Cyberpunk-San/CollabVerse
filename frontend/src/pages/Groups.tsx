@@ -2,27 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { groupsApi } from '../api/group';
 import type { GroupResponse, GroupMessageResponse, GroupMemberResponse } from '../api/group';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../contexts/AuthContext';
 import { useGroupSocket } from '../hooks/useWebSocket';
 import { CreateGroup } from '../components/groups/CreateGroup';
 import { GroupList } from '../components/groups/GroupList';
 import { GroupChat } from '../components/groups/GroupChat';
 import { GroupMembers } from '../components/groups/GroupMembers';
+import { GroupSettingsModal } from '../components/groups/GroupSettingsModal';
 import { Tabs, EmptyState, Skeleton } from '../components/common';
 import { useToast } from '../components/common/Toast';
-
-
-import { MessageSquare, Users, Hash, MoreVertical, LogOut, BellOff, Info, Edit2, UserPlus } from 'lucide-react';
 import { Dropdown, Button } from '../components/common';
 
-
-
-
+import { 
+  MessageSquare, 
+  Users, 
+  Hash, 
+  MoreVertical, 
+  LogOut, 
+  BellOff, 
+  Info, 
+  Edit2, 
+  UserPlus, 
+  Plus, 
+  ShieldCheck 
+} from 'lucide-react';
 
 export const GroupsPage: React.FC = () => {
   const { groupId } = useParams<{ groupId: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user } = useAuthContext();
   const toast = useToast();
 
   const [groups, setGroups] = useState<GroupResponse[]>([]);
@@ -34,6 +42,7 @@ export const GroupsPage: React.FC = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [activeTab, setActiveTab] = useState('chat');
   const [onlineCount, setOnlineCount] = useState(0);
 
@@ -167,7 +176,7 @@ export const GroupsPage: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async (content: string, mentionType?: string, mentionedUsers?: string[]) => {
+  const handleSendMessage = async (content: string, mentionType?: string, mentionedUsers?: string[], replyToId?: string) => {
     if (!groupId || !content.trim()) return;
 
     const tempId = `temp-${Date.now()}`;
@@ -196,7 +205,8 @@ export const GroupsPage: React.FC = () => {
       const newMessage = await groupsApi.sendMessage(groupId, {
         content,
         mention_type: mentionType as any || 'none',
-        mentioned_users: mentionedUsers
+        mentioned_users: mentionedUsers,
+        reply_to_id: replyToId
       });
 
       setMessages(prev => prev.map(msg =>
@@ -322,138 +332,174 @@ export const GroupsPage: React.FC = () => {
     }
   };
 
+  const handlePinMessage = async (messageId: string) => {
+    if (!groupId) return;
+    try {
+      await groupsApi.pinMessage(groupId, messageId);
+      toast.success('Message pinned to channel');
+    } catch (error) {
+      toast.error('Failed to pin message');
+    }
+  };
+
   const tabs = [
     {
-
       id: 'chat',
-      label: 'Chat',
-      icon: <MessageSquare className="w-4 h-4" />
+      label: 'Broadcast',
+      icon: <MessageSquare size={16} />
     },
     {
       id: 'members',
-      label: 'Members',
-      icon: <Users className="w-4 h-4" />,
+      label: 'Personnel',
+      icon: <Users size={16} />,
       count: members.length
     }
   ];
 
-
   if (loading && groupId) {
     return (
-      <div className="h-full flex">
-        <div className="w-80 border-r border-gray-200 bg-white p-4">
-          <Skeleton className="h-10 w-full mb-4" />
-          {[1, 2, 3].map(i => (
-            <div key={i} className="flex items-center gap-3 mb-4">
-              <Skeleton className="h-12 w-12 rounded-full" />
+      <div className="h-full flex animate-pulse">
+        <div className="w-80 border-r border-white/5 bg-slate-900/50 p-6">
+          <Skeleton className="h-12 w-full rounded-2xl mb-8" />
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="flex items-center gap-4 mb-6">
+              <Skeleton className="h-12 w-12 rounded-2xl" />
               <div className="flex-1">
                 <Skeleton className="h-4 w-24 mb-2" />
-                <Skeleton className="h-3 w-32" />
+                <Skeleton className="h-3 w-full opacity-50" />
               </div>
             </div>
           ))}
         </div>
-        <div className="flex-1 p-6">
-          <Skeleton className="h-10 w-64 mb-6" />
-          <Skeleton className="h-96 w-full rounded-lg" />
+        <div className="flex-1 p-10 bg-slate-950">
+          <Skeleton className="h-8 w-48 mb-4 rounded-lg" />
+          <Skeleton className="h-full w-full rounded-[2.5rem]" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex bg-gray-50">
-      <div className="w-80 border-r border-gray-200 bg-white overflow-y-auto">
-        <GroupList
-          groups={groups}
-          onCreateGroup={() => setShowCreateModal(true)}
-          loading={loading && !groupId}
-          activeGroupId={groupId}
-          stats={groupStats}
-        />
-      </div>
+    <div className="h-full flex overflow-hidden">
+      {/* Group Navigation Sidebar */}
+      <aside className="w-80 border-r border-white/5 bg-slate-900/30 backdrop-blur-xl flex flex-col">
+        <div className="p-6">
+            <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-6">Terminal Channels</h2>
+            <Button 
+                onClick={() => setShowCreateModal(true)}
+                className="btn-modern !rounded-2xl w-full !py-4 mb-2 !bg-indigo-600"
+                icon={<Plus size={18} />}
+            >
+                New Channel
+            </Button>
+        </div>
+        <div className="flex-1 overflow-y-auto px-4 custom-scrollbar">
+            <GroupList
+              groups={groups}
+              onCreateGroup={() => setShowCreateModal(true)}
+              loading={loading && !groupId}
+              activeGroupId={groupId}
+              stats={groupStats}
+            />
+        </div>
+      </aside>
 
-      <div className="flex-1 min-w-0">
+      {/* Main Content Area */}
+      <main className="flex-1 min-w-0 bg-slate-950/50 relative">
         {groupId && currentGroup ? (
-          <div className="h-full flex flex-col">
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center text-white">
-                      <Hash className="w-5 h-5" />
+          <div className="h-full flex flex-col animate-entrance">
+            
+            {/* Contextual Header */}
+            <header className="glass border-b-white/5 px-8 py-5 flex items-center justify-between">
+              <div className="flex items-center gap-5">
+                <div className="relative group">
+                    <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-indigo-500/20 group-hover:scale-105 transition-transform">
+                        <Hash size={24} />
                     </div>
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-900">
-                        {currentGroup.name}
-                      </h2>
-                      <p className="text-sm text-gray-500">
-                        {onlineCount} online • {members.length} members
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {activeTab === 'members' && (currentGroup.my_role === 'creator' || currentGroup.my_role === 'admin') && (
-                      <Button
-                        size="sm"
-                        variant="primary"
-                        onClick={handleAddMember}
-                        icon={<UserPlus className="w-4 h-4" />}
-                      >
-                        Add Member
-                      </Button>
+                    {onlineCount > 0 && (
+                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 border-4 border-slate-950 rounded-full animate-pulse" />
                     )}
-                    <Dropdown
-                      trigger={
-                        <button className="p-2 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-full transition-colors">
-                          <MoreVertical className="w-5 h-5" />
-                        </button>
-                      }
-                      position="right"
-                      items={[
-                        {
-                          id: 'info',
-                          label: 'Group Info',
-                          icon: <Info className="w-4 h-4" />,
-                          onClick: () => { }
-                        },
-                        { id: 'divider-1', label: '', divider: true },
-
-
-                        {
-                          id: 'notifications',
-                          label: 'Mute Notifications',
-                          icon: <BellOff className="w-4 h-4" />,
-                          onClick: () => { }
-                        },
-                        ...(currentGroup.my_role === 'admin' || currentGroup.my_role === 'creator' ? [
-                          {
-                            id: 'settings',
-                            label: 'Group Settings',
-                            icon: <Edit2 className="w-4 h-4" />,
-                            onClick: () => { }
-                          }
-                        ] : []),
-                        {
-                          id: 'leave',
-                          label: 'Leave Group',
-                          icon: <LogOut className="w-4 h-4" />,
-                          onClick: handleLeaveGroup,
-                          danger: true
-                        }
-                      ]}
-                    />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
+                    {currentGroup.name}
+                    {currentGroup.my_role === 'creator' && <ShieldCheck size={14} className="text-indigo-400" />}
+                  </h2>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-md">
+                        <span className="w-1 h-1 rounded-full bg-emerald-500" /> {onlineCount} Live
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{members.length} Personnel</span>
                   </div>
                 </div>
+              </div>
 
+              <div className="flex items-center gap-4">
+                {activeTab === 'members' && (currentGroup.my_role === 'creator' || currentGroup.my_role === 'admin') && (
+                  <Button
+                    size="sm"
+                    className="btn-modern !rounded-xl !py-2.5 !px-4 !bg-white !text-slate-900"
+                    onClick={handleAddMember}
+                    icon={<UserPlus size={16} />}
+                  >
+                    Add Personnel
+                  </Button>
+                )}
+                
+                <Dropdown
+                  trigger={
+                    <button className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-white hover:bg-white/5 rounded-xl transition-all">
+                      <MoreVertical size={20} />
+                    </button>
+                  }
+                  position="right"
+                  items={[
+                    {
+                      id: 'info',
+                      label: 'Operation Intel',
+                      icon: <Info size={16} />,
+                      onClick: () => { }
+                    },
+                    { id: 'divider-1', label: '', divider: true },
+                    {
+                      id: 'notifications',
+                      label: 'Silence Comms',
+                      icon: <BellOff size={16} />,
+                      onClick: () => { }
+                    },
+                    ...(currentGroup.my_role === 'admin' || currentGroup.my_role === 'creator' ? [
+                      {
+                        id: 'settings',
+                        label: 'Terminal Settings',
+                        icon: <Edit2 size={16} />,
+                        onClick: () => setShowSettingsModal(true)
+                      }
+                    ] : []),
+                    {
+                      id: 'leave',
+                      label: 'Abort Group',
+                      icon: <LogOut size={16} />,
+                      onClick: handleLeaveGroup,
+                      danger: true
+                    }
+                  ]}
+                />
+              </div>
+            </header>
 
-              <Tabs
-                tabs={tabs}
-                defaultTabId="chat"
-                variant="underline"
-                onChange={setActiveTab}
-              />
-            </div>
-            <div className="flex-1 overflow-hidden">
+            {/* Navigation Tabs */}
+            <nav className="px-8 bg-slate-900/10 border-b border-white/5">
+                <Tabs
+                    tabs={tabs}
+                    defaultTabId="chat"
+                    variant="underline"
+                    onChange={setActiveTab}
+                    className="!py-0"
+                />
+            </nav>
+
+            {/* View Switching */}
+            <div className="flex-1 overflow-hidden relative">
               {activeTab === 'chat' && currentGroup && (
                 <GroupChat
                   groupId={currentGroup.id}
@@ -469,42 +515,63 @@ export const GroupsPage: React.FC = () => {
                   onReactToMessage={handleReaction}
                   onEditMessage={handleEditMessage}
                   onDeleteMessage={handleDeleteMessage}
+                  onPinMessage={handlePinMessage}
                   onLeaveGroup={handleLeaveGroup}
                   loadingMore={loadingMore}
                   onlineCount={onlineCount}
                 />
               )}
               {activeTab === 'members' && currentGroup && (
-                <GroupMembers
-                  members={members}
-                  currentUserId={user?.id || ''}
-                  currentUserRole={currentGroup.my_role || undefined}
-                  groupId={currentGroup.id}
-                  onAddMember={handleAddMember}
-                  onRemoveMember={handleRemoveMember}
-                  onPromoteToAdmin={handlePromoteToAdmin}
-                  onDemoteToMember={handleDemoteToMember}
-                  onlineCount={onlineCount}
-                />
+                <div className="h-full p-8 max-w-5xl mx-auto overflow-y-auto custom-scrollbar">
+                    <GroupMembers
+                      members={members}
+                      currentUserId={user?.id || ''}
+                      currentUserRole={currentGroup.my_role || undefined}
+                      groupId={currentGroup.id}
+                      onAddMember={handleAddMember}
+                      onRemoveMember={handleRemoveMember}
+                      onPromoteToAdmin={handlePromoteToAdmin}
+                      onDemoteToMember={handleDemoteToMember}
+                      onlineCount={onlineCount}
+                    />
+                </div>
               )}
             </div>
-
           </div>
         ) : (
-          <div className="h-full flex items-center justify-center">
-            <EmptyState
-              type="groups"
-              title="No group selected"
-              description="Choose a group from the sidebar or create a new one to start collaborating"
-              action={{
-                label: "Create Group",
-                onClick: () => setShowCreateModal(true)
-              }}
-            />
-          </div>
+          /* Empty State Dashboard */
+          <div className="h-full flex items-center justify-center p-12">
+            <div className="card-modern max-w-md w-full p-12 text-center border-dashed bg-white/5">
+                <div className="w-20 h-20 bg-indigo-600/10 rounded-3xl flex items-center justify-center mx-auto mb-8">
+                    <MessageSquare size={40} className="text-indigo-500" />
+                </div>
+                <h2 className="text-3xl font-black text-white tracking-tight mb-3">Terminal Idle</h2>
+                <p className="text-slate-500 mb-10 leading-relaxed">Choose an active communication channel from the console or initialize a new group mission.</p>
+                <Button 
+                    className="btn-modern !px-10 !py-4"
+                    onClick={() => setShowCreateModal(true)}
+                    icon={<Plus size={18} />}
+                >
+                    Create Operation
+                </Button>
+            </div>
+            {/* Settings Modal */}
+      {currentGroup && (
+        <GroupSettingsModal
+          isOpen={showSettingsModal}
+          onClose={() => setShowSettingsModal(false)}
+          group={currentGroup}
+          onGroupUpdated={() => {
+            loadGroups();
+            if (groupId) loadGroupDetails(groupId);
+          }}
+        />
+      )}
+    </div>
         )}
-      </div>
+      </main>
 
+      {/* Creation Modal */}
       <CreateGroup
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}

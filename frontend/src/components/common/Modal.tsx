@@ -66,7 +66,7 @@ export const Modal: React.FC<ModalProps> = ({
       <div
         ref={modalRef}
         onClick={e => e.stopPropagation()}
-        className={`relative bg-white rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
+        className={`relative bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto`}
       >
         {(showCloseButton || title) && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">

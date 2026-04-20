@@ -1,7 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 
-// ==================== API Client Configuration ====================
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
@@ -14,7 +13,6 @@ export const apiClient = axios.create({
 	timeout: 30000, // 30 seconds timeout
 });
 
-// ==================== Types for API Responses ====================
 
 export interface ApiError {
 	detail: string;
@@ -30,7 +28,6 @@ export interface PaginatedResponse<T> {
 	pages: number;
 }
 
-// ==================== Request Interceptors ====================
 
 apiClient.interceptors.request.use(
 	(config: InternalAxiosRequestConfig) => {
@@ -64,7 +61,6 @@ apiClient.interceptors.request.use(
 	}
 );
 
-// ==================== Response Interceptors ====================
 
 apiClient.interceptors.response.use(
 	(response) => {
@@ -140,7 +136,6 @@ apiClient.interceptors.response.use(
 	}
 );
 
-// ==================== Utility Functions ====================
 
 /**
  * Set authentication token
@@ -271,7 +266,6 @@ export const handleApiError = (error: unknown): string => {
 	return 'An unexpected error occurred.';
 };
 
-// ==================== Export All API Modules ====================
 
 // Students API
 export * from './students';
@@ -297,7 +291,9 @@ export * from './repos';
 // WebSocket
 export * from './websocket';
 
-// ==================== Default Export ====================
+// ML API
+export * from './ml';
+
 
 export default {
 	client: apiClient,

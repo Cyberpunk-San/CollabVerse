@@ -22,11 +22,10 @@ def seed_skills():
             'node.js': 3
         },
         'jelly13bean': {
-            'python': 3,
-            'sql': 4,
-            'data analysis': 4,
-            'pandas': 3,
-            'tensorflow': 2
+            'javascript': 4,
+            'html': 4,
+            'css': 4,
+            'react': 3
         },
         'prollypavani': {
             'java': 4,

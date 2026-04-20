@@ -92,22 +92,27 @@ async def unified_websocket(websocket: WebSocket, user_id: str):
                 group_id = data.get("group_id")
                 message_id = data.get("message_id")
                 if group_id and message_id:
-                    read_record = GroupMessageRead(
-                        id=str(uuid.uuid4()),
-                        message_id=message_id,
-                        user_id=user_id
-                    )
-                    db.add(read_record)
-                    db.commit()
-                    
-                    message = db.query(GroupMessage).filter(GroupMessage.id == message_id).first()
-                    if message and message.sender_id != user_id:
-                        await ws_manager.send_to_user(message.sender_id, {
-                            "type": "message_read",
-                            "group_id": group_id,
-                            "message_id": message_id,
-                            "read_by": user_id
-                        })
+                    # Open a fresh session for this specific database operation
+                    db_session = next(get_db())
+                    try:
+                        read_record = GroupMessageRead(
+                            id=str(uuid.uuid4()),
+                            message_id=message_id,
+                            user_id=user_id
+                        )
+                        db_session.add(read_record)
+                        db_session.commit()
+                        
+                        message = db_session.query(GroupMessage).filter(GroupMessage.id == message_id).first()
+                        if message and message.sender_id != user_id:
+                            await ws_manager.send_to_user(message.sender_id, {
+                                "type": "message_read",
+                                "group_id": group_id,
+                                "message_id": message_id,
+                                "read_by": user_id
+                            })
+                    finally:
+                        db_session.close()
             
             # --- Common Handlers ---
             elif message_type == "heartbeat":

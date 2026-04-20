@@ -1,10 +1,10 @@
 // frontend/src/pages/VerifyGithub.tsx
 import { useState, useEffect } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 export const VerifyGithub = () => {
-  const { user, requestGithubVerification, pollGithubVerification, isGithubVerified } = useAuth();
+  const { user, requestGithubVerification, pollGithubVerification, isGithubVerified } = useAuthContext();
   const [code, setCode] = useState<string | null>(null);
   const [instructions, setInstructions] = useState<any>(null);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -13,7 +13,9 @@ export const VerifyGithub = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('Verification Status in Page:', isGithubVerified);
     if (isGithubVerified) {
+      console.log('🚀 Redirecting to Dashboard...');
       navigate('/dashboard');
     }
   }, [isGithubVerified, navigate]);
@@ -32,8 +34,12 @@ export const VerifyGithub = () => {
 
         // Start polling
         pollGithubVerification(() => {
+          console.log('Poll success callback triggered');
           setMessage('GitHub verified successfully!');
-          setTimeout(() => navigate('/dashboard'), 2000);
+          setTimeout(() => {
+              console.log('Moving to dashboard now...');
+              navigate('/dashboard');
+          }, 1500);
         });
       } else {
         setError(result.error || result.data?.message || 'Verification request failed');

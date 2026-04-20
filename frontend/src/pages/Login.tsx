@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useAuthContext } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../components/common/Toast';
 import { Input } from '../components/common/Input';
 import { Button } from '../components/common/Button';
-import { Card } from '../components/common/Card';
 import {
   Mail,
   Lock,
@@ -12,7 +11,11 @@ import {
   Github,
   Eye,
   EyeOff,
-  ArrowRight
+  ArrowRight,
+  ShieldCheck,
+  Zap,
+  Cpu,
+  CheckCircle
 } from 'lucide-react';
 
 export const Login = () => {
@@ -24,7 +27,7 @@ export const Login = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  const { login } = useAuth();
+  const { login } = useAuthContext();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -36,16 +39,12 @@ export const Login = () => {
   };
 
   const validateForm = () => {
-    if (!formData.email) {
-      showToast('Email is required', { type: 'error' });
-      return false;
-    }
-    if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      showToast('Please enter a valid email address', { type: 'error' });
+    if (!formData.email || !/^\S+@\S+\.\S+$/.test(formData.email)) {
+      showToast('Valid Network Identifier required', { type: 'error' });
       return false;
     }
     if (!formData.password) {
-      showToast('Password is required', { type: 'error' });
+      showToast('Security Credential required', { type: 'error' });
       return false;
     }
     return true;
@@ -53,168 +52,109 @@ export const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!validateForm()) return;
-
     setIsSubmitting(true);
 
     try {
       const result = await login(formData.email, formData.password);
 
       if (result.success) {
-        showToast('Login successful! Welcome back.', { type: 'success' });
-        navigate('/dashboard');
+        showToast('Access Granted. Syncing terminal...', { type: 'success' });
+        // Correctly routes to the Dashboard component
+        navigate('/dashboard'); 
       } else {
-        showToast(result.error || 'Login failed', { type: 'error' });
+        showToast(result.error || 'Authentication Failed', { type: 'error' });
       }
     } catch (err) {
-      showToast('An unexpected error occurred', { type: 'error' });
+      showToast('System Link Interrupted', { type: 'error' });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleGithubLogin = () => {
-    showToast('GitHub login coming soon!', { type: 'info' });
-  };
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* Logo/Brand */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-indigo-600 rounded-2xl shadow-lg mb-4">
-            <svg className="w-12 h-12 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
-            </svg>
+    <div className="min-h-screen relative flex items-center justify-center p-6 overflow-hidden">
+      {/* Background Ambience */}
+      <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-600/30 rounded-full blur-[120px] animate-pulse" />
+      </div>
+
+      <div className="max-w-md w-full relative z-10 animate-entrance">
+        <div className="text-center mb-10">
+          <div className="relative inline-flex items-center justify-center mb-6">
+            <div className="w-24 h-24 bg-slate-900 rounded-[2.5rem] flex items-center justify-center border border-white/10 shadow-2xl">
+               <Cpu size={48} className="text-indigo-500" />
+            </div>
+            <div className="absolute -bottom-2 -right-2 p-2 bg-indigo-600 rounded-2xl border-4 border-slate-950">
+                <ShieldCheck size={20} className="text-white" />
+            </div>
           </div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            CollabVerse
+          <h1 className="text-5xl font-black tracking-tighter text-white">
+            Collab<span className="gradient-text">Verse</span>
           </h1>
-          <p className="text-gray-600 mt-2">Welcome back! Sign in to continue</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mt-3">Secure Node Access</p>
         </div>
 
-        <Card className="p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Email Field */}
-            <Input
-              label="Email address"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              leftIcon={<Mail className="w-4 h-4" />}
-              required
-              fullWidth
-              autoComplete="email"
-            />
-
-            {/* Password Field */}
-            <Input
-              label="Password"
-              type={showPassword ? 'text' : 'password'}
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="••••••••"
-              leftIcon={<Lock className="w-4 h-4" />}
-              rightIcon={
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              }
-              required
-              fullWidth
-              autoComplete="current-password"
-            />
-
-            {/* Remember Me & Forgot Password */}
-            <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+        <div className="glass-card-stat !p-10 !rounded-[3rem] border-white/5">
+          <form onSubmit={handleSubmit} className="space-y-8">
+            <div className="space-y-6">
+                <Input
+                  label="Network Identifier"
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="user@collabverse.com"
+                  className="!rounded-2xl !bg-slate-950/50 !border-white/5 !py-7 !pl-14 text-white focus:!border-indigo-500/50"
+                  leftIcon={<Mail className="w-5 h-5 text-indigo-500" />}
+                  required
                 />
-                <span className="text-sm text-gray-600">Remember me</span>
-              </label>
 
-              <Link
-                to="/forgot-password"
-                className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
-              >
-                Forgot password?
-              </Link>
+                <Input
+                  label="Security Credential"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  className="!rounded-2xl !bg-slate-950/50 !border-white/5 !py-7 !pl-14 text-white focus:!border-indigo-500/50"
+                  leftIcon={<Lock className="w-5 h-5 text-indigo-500" />}
+                  rightIcon={
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-slate-500 hover:text-white">
+                      {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  }
+                  required
+                />
             </div>
 
-            {/* Submit Button */}
+            <div className="flex items-center justify-between">
+              <label className="group flex items-center gap-3 cursor-pointer">
+                <div className="relative">
+                    <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="peer sr-only" />
+                    <div className="w-5 h-5 bg-slate-900 border border-white/10 rounded-lg peer-checked:bg-indigo-600 transition-all" />
+                    <CheckCircle className="absolute top-0.5 left-0.5 w-4 h-4 text-white opacity-0 peer-checked:opacity-100 transition-opacity" />
+                </div>
+                <span className="text-xs font-bold uppercase tracking-widest text-slate-500 group-hover:text-slate-300">Persistent Session</span>
+              </label>
+            </div>
+
             <Button
               type="submit"
-              variant="primary"
               size="lg"
               fullWidth
               loading={isSubmitting}
-              icon={<LogIn className="w-4 h-4" />}
+              className="btn-modern !rounded-2xl !py-6 !bg-indigo-600 shadow-xl shadow-indigo-500/20"
+              icon={<Zap className="w-5 h-5 animate-pulse" />}
             >
-              Sign In
-            </Button>
-
-            {/* Divider */}
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
-              </div>
-            </div>
-
-            {/* GitHub Login */}
-            <Button
-              type="button"
-              variant="outline"
-              size="lg"
-              fullWidth
-              onClick={handleGithubLogin}
-              icon={<Github className="w-4 h-4" />}
-            >
-              Sign in with GitHub
+              Initiate Link
             </Button>
           </form>
-
-          {/* Sign Up Link */}
-          <p className="mt-6 text-center text-sm text-gray-600">
-            Don't have an account?{' '}
-            <Link
-              to="/register"
-              className="font-medium text-indigo-600 hover:text-indigo-500 inline-flex items-center gap-1"
-            >
-              Create account
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+          
+          <p className="mt-10 text-center text-[11px] font-bold text-slate-500 uppercase tracking-[0.1em]">
+            New operative? <Link to="/register" className="text-indigo-400 font-black">Initialize Profile</Link>
           </p>
-        </Card>
-
-        {/* Demo Credentials - Only in development */}
-        {import.meta.env.DEV && (
-          <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <p className="text-xs font-medium text-gray-700 mb-2">🔐 Demo Credentials:</p>
-            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-              <div>
-                <span className="font-medium">Email:</span> demo@collabverse.com
-              </div>
-              <div>
-                <span className="font-medium">Password:</span> Demo@123
-              </div>
-            </div>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
