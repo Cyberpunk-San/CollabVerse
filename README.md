@@ -1,87 +1,156 @@
-<div align="center">
+# 🌌 CollabVerse: Intelligent Campus Skill Network
 
-#  CollabVerse  
-### Find your perfect campus buddies — and ace the hackathons 
-
-![Built with React](https://img.shields.io/badge/Built%20with-React-blue?style=for-the-badge&logo=react)
-![FastAPI](https://img.shields.io/badge/Backend-FastAPI-green?style=for-the-badge&logo=fastapi)
-![TypeScript](https://img.shields.io/badge/Language-TypeScript-blue?style=for-the-badge&logo=typescript)
-![Python](https://img.shields.io/badge/AI-Python-yellow?style=for-the-badge&logo=python)
-![License: MIT](https://img.shields.io/badge/License-MIT-orange?style=for-the-badge)
-
-</div>
+CollabVerse is a high-performance, AI-driven platform designed to revolutionize how students connect and collaborate on campus. By leveraging advanced graph algorithms, machine learning, and real-time synchronization, CollabVerse maps out a campus's technical DNA through GitHub activity and builds optimal teams automatically.
 
 ---
 
-## 📖 Overview
+## 🚀 Key Features
 
-**CollabVerse** is an **AI-powered campus skill network** that helps students discover who to collaborate with — whether for hackathons, projects, or research.  
-It maps out the skills of students from their **GitHub activity** and visualizes them as a dynamic **social graph**.
+### 🧠 1. The Synergy Engine (C++)
+The backbone of CollabVerse is a high-performance C++ engine that handles complex combinatorial optimizations:
+*   **Dinic’s Algorithm**: Used for Maximum Bipartite Matching to ensure the highest number of optimal team assignments across the platform.
+*   **Bitmask Dynamic Programming**: Calculates synergy scores by exploring all subset combinations of student skills and project roles.
+*   **Heuristic Matching**: A multi-layered fallback system that uses skill embeddings to match students even when historical data is sparse.
 
-> Think *LinkedIn + GitHub + AI*, but built for your campus.
+### 🛡️ 2. Secure GitHub Verification
+A robust, tamper-proof verification system:
+*   **Proof-of-Ownership**: Users verify their account by creating a specific repository (`CollabVerse-Verification`) with a unique, time-bound code.
+*   **API-Driven Validation**: The backend uses the GitHub REST API (bypassing CDN caches) to decode and verify the repository content instantly.
+*   **Database Persistence**: Verification states and codes are persisted in the database, surviving server restarts and reloads.
 
----
-## Video
-## 🎥 Demo Video
+### 💬 3. Real-Time Collaboration
+*   **Unified WebSocket Manager**: A single, persistent connection per user that handles instant messaging, group notifications, and typing indicators.
+*   **Presence Tracking**: Real-time "Online/Offline" status updates across all team and chat views.
+*   **Reliable Sessions**: Built with a custom `NullPool` SQLite configuration to ensure database stability in high-concurrency async environments.
 
-[![Watch the Demo](https://img.shields.io/badge/▶️%20Watch%20Demo%20Video-blue?style=for-the-badge)](https://drive.google.com/file/d/18gxkyPr-iMQ6Vg84y1ZxYVdryDuaK_91/view?usp=sharing)
-> click the link(if ask to download, kindly download it , the video is of large mb)
-
-
-## 🚀 Features
-
--  **AI-Based Skill Detection** – Analyzes GitHub repos and READMEs to identify a student’s tech stack.
--  **Interactive Skill Graph** – D3.js visualization that connects students by shared or complementary skills.
--  **Skill Search** – Type “React”, “AI”, or “Robotics” to instantly highlight matching profiles.
--  **AI Team Recommendations** – Suggests ideal teammates using skill embeddings and GPT analysis.
--  **Smart Profiles** – View student cards with skills, GitHub links, and collaboration interests.
--  **Real-Time Updates** – Automatically refreshes data as students update their projects.
-
----
-
-## 🧠 Why CollabVerse
-
-Unlike LinkedIn, which connects people for jobs, **CollabVerse connects students for collaboration**.  
-It uses *real project data* instead of self-declared skills — so the network is authentic, visual, and built on actual coding work.
-
-> 💡 CollabVerse turns your campus into a living skill map — so you can *find the right person to build with, instantly.*
+### 📊 4. AI-Powered Skill Ingestion
+*   **GitHub Miner**: Automatically analyzes repositories, commit history, and READMEs to detect a user's true tech stack.
+*   **Neural Network Predictor**: Uses a custom-trained MLP (Multi-Layer Perceptron) to predict a student's project success probability and skill growth.
 
 ---
 
-## ⚙️ Tech Stack
+## ⚙️ Backend Systems & Architecture
 
-### 🖥️ **Frontend**
-- React + TypeScript  
-- D3.js (for graph visualization)  
-- Tailwind CSS (for styling & animations)  
+The CollabVerse backend is a highly modular system built for speed, real-time interactivity, and data-driven insights.
 
-### ⚙️ **Backend**
-- FastAPI (Python REST API)  
-- Sentence Transformers (for skill embeddings)  
-- GPT-4o (for teammate suggestions & summaries)
-- Ollama (AI suggestions)
+### 1. Performance Bridge (Python-C++ Interop)
+The backend uses a hybrid architecture. While FastAPI handles the web requests, the heavy mathematical lifting is offloaded to pre-compiled C++ binaries:
+*   **Subprocess Execution**: Python uses the `subprocess` module to pipe student features into the C++ Synergy Engine and receives the optimal matching results in structured JSON format.
+*   **Efficiency**: This allows us to maintain the developer speed of Python while benefiting from the raw computational power of C++.
 
-### ☁️ **Database & Auth**
-- SQLite  
-- GitHub REST API (for project data)
+### 2. Real-Time WebSocket Manager
+Unlike standard REST APIs, CollabVerse maintains a stateful real-time layer:
+*   **Connection Pooling**: The `UnifiedConnectionManager` tracks all active users and their socket IDs.
+*   **Event Broadcasting**: Supports one-to-one chat, group-wide notifications, and live typing indicators.
+*   **Presence Engine**: Automatically updates user status (online/offline) globally when a socket connects or disconnects.
+
+### 3. GitHub Data Ingestion Service
+The `GitHubIngest` service is responsible for transforming raw GitHub profiles into structured skill vectors:
+*   **Recursive Mining**: It analyzes repository descriptions, primary languages, and `README.md` files using the GitHub REST API.
+*   **Metadata Analysis**: It tracks commit frequency and PR activity to weight a student's experience level (e.g., a "Contributor" vs. a "Watcher").
+
+### 4. Authentication & Security
+*   **Stateless JWT**: Implements JSON Web Tokens for session management, allowing the backend to scale horizontally without session-store dependencies.
+*   **Cryptographic Hashing**: User passwords are encrypted using **bcrypt** with a dynamic salt, protecting against rainbow table and brute-force attacks.
+*   **Dependency Injection**: FastAPI's `Depends` system is used to enforce strict access control on all private routes (Profile, Chat, Verification).
+
+### 5. Database & Storage Layer
+*   **SQLAlchemy ORM**: Used for all database interactions to ensure type-safety and prevent SQL injection.
+*   **Thread-Safe SQLite**: Configured with a `NullPool` strategy to handle concurrent async requests without database locking or "InterfaceErrors."
+*   **Local Media Store**: Handles secure file uploads (images/documents) with path validation to prevent directory traversal attacks.
 
 ---
 
+## 🗂️ Project Structure
+
+```text
+CollabVerse/
+├── backend/
+│   ├── app/                # FastAPI Application
+│   │   ├── api/            # API Routes (Verify, Chat, ML, etc.)
+│   │   ├── core/           # Database & Config
+│   │   ├── models/         # SQLAlchemy Models
+│   │   └── services/       # Business Logic (GitHub Ingest)
+│   ├── engine/             # C++ Performance Modules
+│   │   ├── src/            # Dinic's, Synergy, and NN source
+│   │   └── bin/            # Compiled Binaries
+│   └── uploads/            # User-uploaded files/media
+├── frontend/
+│   ├── src/
+│   │   ├── api/            # Axios API Clients
+│   │   ├── components/     # UI Components
+│   │   ├── context/        # React Context Providers
+│   │   ├── hooks/          # Custom React Hooks
+│   │   └── pages/          # Application Views
+└── CollabVerse_CP_Report.tex # Full Technical/Academic Report
+```
 
 ---
 
-## 🧰 Installation & Setup
+## 📥 Installation & Setup
 
-### 1️⃣ Clone the Repository
+### 1. Prerequisites
+*   Node.js 18+
+*   Python 3.10+
+*   C++ Compiler (GCC/Clang or MSVC)
+
+### 2. Backend Setup
 ```bash
-git clone https://github.com/<your-username>/CollabVerse.git
-cd CollabVerse
 cd backend
-uvicorn app.main:app --reload --port 8000 
-cd ../frontend
+python -m venv venv
+source venv/bin/activate  # Or `venv\Scripts\activate` on Windows
+pip install -r requirements.txt
+uvicorn app.main:app --port 8000
+```
+
+### 3. Frontend Setup
+```bash
+cd frontend
 npm install
 npm run dev
+```
+
+---
+
+## 🧠 Algorithmic Deep-Dive (DAA & CP Focus)
+
+This project serves as a practical implementation of several core concepts from the **Design and Analysis of Algorithms (DAA)** curriculum and **Competitive Programming (CP)**.
+
+### 1. Maximum Bipartite Matching (Network Flow)
+To solve the team allocation problem, we model the community as a **Bipartite Graph** $G = (U \cup P, E)$, where $U$ is the set of users and $P$ is the set of project roles. 
+*   **The Algorithm**: We implement **Dinic’s Algorithm** for Maximum Flow. While many textbooks suggest Ford-Fulkerson ($O(E \cdot f)$) or Edmonds-Karp ($O(VE^2)$), we chose Dinic's for its superior performance.
+*   **The Model**: We transform the matching problem into a flow problem by adding a **Super Source (S)** connected to all users and a **Super Sink (T)** connected to all project roles. Every edge has a capacity of 1 to ensure 1-to-1 matching.
+*   **Complexity**: On a bipartite network with unit capacities, Dinic’s algorithm runs in **$O(E\sqrt{V})$**, making it the most efficient choice for large-scale student matching.
+
+### 2. Synergy Optimization (Dynamic Programming + Bitmasking)
+When calculating the best possible team for a specific project, we face an optimization problem that would normally be $O(N!)$ if solved via brute force.
+*   **The Algorithm**: **Bitmask DP**. We use an integer (mask) where each bit represents whether a project role is "filled" or "empty."
+*   **State Transition**: `dp[student_idx][mask] = max(compatibility + solve(student_idx + 1, mask | (1 << role_idx)))`.
+*   **Complexity**: This reduces the complexity to **$O(N \cdot 2^R)$**, where $N$ is the number of students and $R$ is the number of roles (typically small, e.g., 4-8), making it computationally feasible for real-time suggestions.
+
+### 3. Graph Traversal & Connectivity
+*   **BFS (Breadth-First Search)**: Used to construct the **Level Graph** in Dinic's algorithm, ensuring we only push flow along the shortest augmenting paths.
+*   **DFS (Depth-First Search)**: Used to find **Blocking Flows** within the level graph during the augmentation phase.
+*   **Complexity**: Both operate in **$O(V + E)$**, ensuring minimal overhead during pre-processing.
+
+### 4. Memory-Efficient Data Structures
+In competitive programming, memory limits are tight. 
+*   **Adjacency Lists**: Instead of an $O(V^2)$ adjacency matrix, we use **Adjacency Lists** (`std::vector<std::vector<Edge>>`). This ensures our space complexity is strictly **$O(V + E)$**, allowing the engine to handle thousands of nodes and edges even on low-resource servers.
+*   **STL Optimization**: We leverage the C++ Standard Template Library (STL) for fast `std::queue` operations and `std::vector` re-allocations.
+
+---
+
+## 📑 Technical Report & Proofs
+
+For a deep dive into the mathematical proofs, formal complexity derivations, and LaTeX-formatted pseudocode, please refer to:
+👉 **[LaTeX CP Report](./CollabVerse_CP_Report.tex)**
 
 
+---
 
+## 👥 Contributors
+*   **Sansriti Mishra** (2401030293)
+*   **Sanvi Dhingra** (2401030310)
+*   **Anant Kumar Verma** (2401030295)
 
+**Supervised By**: Dr. Kirti Jain & Dr. Aastha Maheswari
