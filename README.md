@@ -8,24 +8,22 @@ CollabVerse is a high-performance, AI-driven platform designed to revolutionize 
 
 ### 🧠 1. The Synergy Engine (C++)
 The backbone of CollabVerse is a high-performance C++ engine that handles complex combinatorial optimizations:
-*   **Dinic’s Algorithm**: Used for Maximum Bipartite Matching to ensure the highest number of optimal team assignments across the platform.
-*   **Bitmask Dynamic Programming**: Calculates synergy scores by exploring all subset combinations of student skills and project roles.
-*   **Heuristic Matching**: A multi-layered fallback system that uses skill embeddings to match students even when historical data is sparse.
+*   **Dinic’s Algorithm (Optimization)**: Used for Maximum Bipartite Matching to ensure the highest number of optimal team assignments across the platform globally.
+*   **Bitmask Dynamic Programming (DP)**: Calculates optimal synergy scores for specific project roles using state-space memoization.
+*   **Greedy Heuristics**: A sub-second recommendation fallback in Python that uses local complementarity scoring to suggest teammates instantly.
 
 ### 🛡️ 2. Secure GitHub Verification
 A robust, tamper-proof verification system:
 *   **Proof-of-Ownership**: Users verify their account by creating a specific repository (`CollabVerse-Verification`) with a unique, time-bound code.
-*   **API-Driven Validation**: The backend uses the GitHub REST API (bypassing CDN caches) to decode and verify the repository content instantly.
-*   **Database Persistence**: Verification states and codes are persisted in the database, surviving server restarts and reloads.
+*   **API-Driven Validation**: The backend uses the GitHub REST API (bypassing CDN caches with specific headers) to verify repository content instantly.
 
-### 💬 3. Real-Time Collaboration
-*   **Unified WebSocket Manager**: A single, persistent connection per user that handles instant messaging, group notifications, and typing indicators.
-*   **Presence Tracking**: Real-time "Online/Offline" status updates across all team and chat views.
-*   **Reliable Sessions**: Built with a custom `NullPool` SQLite configuration to ensure database stability in high-concurrency async environments.
+### 💬 3. Real-Time Collaboration & UI
+*   **Bento-Grid Analytics**: A modern, glassmorphic dashboard built with React and Tailwind CSS, featuring SVG-based performance gauges and glassmorphic skill bars.
+*   **Unified WebSocket Manager**: A single, persistent connection per user that handles instant messaging and presence tracking.
 
 ### 📊 4. AI-Powered Skill Ingestion
-*   **GitHub Miner**: Automatically analyzes repositories, commit history, and READMEs to detect a user's true tech stack.
-*   **Neural Network Predictor**: Uses a custom-trained MLP (Multi-Layer Perceptron) to predict a student's project success probability and skill growth.
+*   **GitHub Miner**: Automatically analyzes repository languages and contribution patterns to build a technical DNA profile.
+*   **Neural Network Predictor**: A C++ Multi-Layer Perceptron (MLP) that predicts a student's **Skill Evolution** (Python, JS, C++, Teamwork) based on 20 distinct activity features.
 
 ---
 
@@ -34,20 +32,17 @@ A robust, tamper-proof verification system:
 The CollabVerse backend is a highly modular system built for speed, real-time interactivity, and data-driven insights.
 
 ### 1. Performance Bridge (Python-C++ Interop)
-The backend uses a hybrid architecture. While FastAPI handles the web requests, the heavy mathematical lifting is offloaded to pre-compiled C++ binaries:
-*   **Subprocess Execution**: Python uses the `subprocess` module to pipe student features into the C++ Synergy Engine and receives the optimal matching results in structured JSON format.
-*   **Efficiency**: This allows us to maintain the developer speed of Python while benefiting from the raw computational power of C++.
+The backend uses a hybrid architecture. While FastAPI handles web requests, heavy mathematical lifting is offloaded to optimized C++ binaries:
+*   **Subprocess Execution**: Python pipes student data into the C++ Synergy Engine and receives results in structured JSON format.
+*   **Algorithmic Paradigms**: The system blends **Optimization (Dinic)**, **Dynamic Programming (Bitmask)**, and **Greedy Heuristics** to balance global optimality with real-time responsiveness.
 
 ### 2. Real-Time WebSocket Manager
-Unlike standard REST APIs, CollabVerse maintains a stateful real-time layer:
-*   **Connection Pooling**: The `UnifiedConnectionManager` tracks all active users and their socket IDs.
-*   **Event Broadcasting**: Supports one-to-one chat, group-wide notifications, and live typing indicators.
-*   **Presence Engine**: Automatically updates user status (online/offline) globally when a socket connects or disconnects.
+*   **Event Broadcasting**: Supports one-to-one chat and group-wide notifications.
+*   **Presence Engine**: Automatically updates user status (online/offline) globally.
 
 ### 3. GitHub Data Ingestion Service
-The `GitHubIngest` service is responsible for transforming raw GitHub profiles into structured skill vectors:
-*   **Recursive Mining**: It analyzes repository descriptions, primary languages, and `README.md` files using the GitHub REST API.
-*   **Metadata Analysis**: It tracks commit frequency and PR activity to weight a student's experience level (e.g., a "Contributor" vs. a "Watcher").
+*   **Metadata Analysis**: Analyzes repository primary languages and contribution frequency to weight experience levels.
+*   **MLP Inference**: Feeds activity vectors into the C++ engine to forecast growth trajectories.
 
 ### 4. Authentication & Security
 *   **Stateless JWT**: Implements JSON Web Tokens for session management, allowing the backend to scale horizontally without session-store dependencies.
