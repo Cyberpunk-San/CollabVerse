@@ -141,11 +141,3 @@ For a deep dive into the mathematical proofs, formal complexity derivations, and
 👉 **[LaTeX CP Report](./CollabVerse_CP_Report.tex)**
 
 
----
-
-## 👥 Contributors
-*   **Sansriti Mishra** (2401030293)
-*   **Sanvi Dhingra** (2401030310)
-*   **Anant Kumar Verma** (2401030295)
-
-**Supervised By**: Dr. Kirti Jain & Dr. Aastha Maheswari
