@@ -53,8 +53,6 @@ def build_optimized_teams(
     2. Calls the C++ Dinic/DP binary.
     3. Parses matched Student:Project pairs.
     """
-    
-    # --- STEP 1: PREPARE INPUT FOR C++ ---
     # The C++ main.cpp expects: student_count project_count, student data, project data, edge data.
     input_lines = [f"{len(students)} {len(projects)}"]
     
@@ -83,14 +81,12 @@ def build_optimized_teams(
     input_str = "\n".join(input_lines)
 
     try:
-        # --- STEP 2: RUN C++ SOLVER ---
         # Triggers the subprocess call to the compiled binary in /bin/solver
         raw_output = run_cpp_solver(input_str)
     except Exception as e:
         print(f"C++ Solver unavailable, using Python fallback: {e}")
         return build_teams_python_fallback(students, projects, team_size)
 
-    # --- STEP 3: PARSE RESULTS ---
     assignments = []
     if raw_output:
         for line in raw_output:

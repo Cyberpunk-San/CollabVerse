@@ -360,8 +360,8 @@ async def train_skill_predictor(
         
         training_data = []
 
-        # Generate 500 synthetic students to robustly train the skill predictor
-        for _ in range(500):
+        # Generate 5000 synthetic students to robustly train the skill predictor
+        for _ in range(5000):
             has_python = random.choice([True, False])
             has_js = random.choice([True, False])
             has_cpp = random.choice([True, False])

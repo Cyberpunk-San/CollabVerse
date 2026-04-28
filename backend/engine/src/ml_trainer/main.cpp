@@ -46,7 +46,13 @@ int main() {
         
         if (command == "train_skill_predictor") {
             std::string data_file;
-            std::getline(std::cin, data_file);
+            if (!std::getline(std::cin, data_file)) return 0;
+            
+            // Clean up trailing \r or spaces
+            if (!data_file.empty()) {
+                size_t last = data_file.find_last_not_of(" \n\r\t");
+                if (last != std::string::npos) data_file = data_file.substr(0, last + 1);
+            }
             
             std::ifstream file(data_file);
             if (!file.is_open()) {
@@ -91,7 +97,13 @@ int main() {
             
         } else if (command == "train_team_predictor") {
             std::string data_file;
-            std::getline(std::cin, data_file);
+            if (!std::getline(std::cin, data_file)) return 0;
+            
+            // Clean up trailing \r or spaces
+            if (!data_file.empty()) {
+                size_t last = data_file.find_last_not_of(" \n\r\t");
+                if (last != std::string::npos) data_file = data_file.substr(0, last + 1);
+            }
             
             std::ifstream file(data_file);
             if (!file.is_open()) {

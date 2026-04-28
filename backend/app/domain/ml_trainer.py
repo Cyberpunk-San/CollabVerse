@@ -34,8 +34,8 @@ class MLTrainer:
                 text=True
             )
             
-            full_input = command + "\n" + input_data
-            stdout, stderr = process.communicate(input=full_input, timeout=30)
+            full_input = f"{command}\n{input_data}\n"
+            stdout, stderr = process.communicate(input=full_input, timeout=60)
             
             if stderr:
                 print(f"ML Trainer stderr: {stderr}")

@@ -154,6 +154,7 @@ NeuralNetwork::TrainingResult NeuralNetwork::train(
     TrainingResult result;
     result.loss_history.reserve(epochs);
     result.accuracy_history.reserve(epochs);
+    result.epochs_trained = epochs; 
     
     // Split data
     auto [train_data, val_data] = MLUtils::train_test_split(dataset, validation_split);
@@ -251,12 +252,15 @@ float NeuralNetwork::evaluate(const std::vector<TrainingData>& dataset) {
     for (const auto& data : dataset) {
         auto output = forward(data.input);
         
-        // For classification tasks
-        int pred_class = std::max_element(output.begin(), output.end()) - output.begin();
-        int true_class = std::max_element(data.expected_output.begin(), 
-                                          data.expected_output.end()) - data.expected_output.begin();
+        bool all_close = true;
+        for (size_t i = 0; i < output.size(); i++) {
+            if (std::abs(output[i] - data.expected_output[i]) > 0.05f) {
+                all_close = false;
+                break;
+            }
+        }
         
-        if (pred_class == true_class) correct++;
+        if (all_close) correct++;
     }
     
     return static_cast<float>(correct) / dataset.size();
